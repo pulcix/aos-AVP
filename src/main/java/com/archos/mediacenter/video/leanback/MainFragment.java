@@ -49,6 +49,10 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.preference.PreferenceManager;
 
+// BEGIN PULCIX DPAD INTEGRATION
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+// END PULCIX DPAD INTEGRATION
+
 import com.archos.environment.ArchosUtils;
 import com.archos.filecorelibrary.ExtStorageManager;
 import com.archos.filecorelibrary.ExtStorageReceiver;
@@ -292,8 +296,9 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
         // set fastLane (or headers) background color based on theme
         setBrandColor(themeManager.getLeanbackHeaderColor());
 
-        // set search icon color - always blue like in the fork
-        setSearchAffordanceColor(ThemeManager.getInstance(mActivity).getSearchAffordanceColor());
+        // BEGIN PULCIX CUSTOM THEME
+        // set search icon color
+        setSearchAffordanceColor(themeManager.getSearchAffordanceColor());
 
         // Register theme change listener to update UI when theme changes
         mThemeChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -302,12 +307,13 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
                 if (VideoPreferencesCommon.KEY_APP_THEME.equals(key)) {
                     if (log.isDebugEnabled()) log.debug("Theme changed, updating background and colors");
                     updateBackground();
-                    // Update brand color
+                    // Update brand color and search affordance color
                     setBrandColor(themeManager.getLeanbackHeaderColor());
-                    // Search icon stays blue - no change needed
+                    setSearchAffordanceColor(themeManager.getSearchAffordanceColor());
                 }
             }
         };
+        // END PULCIX CUSTOM THEME
         themeManager.registerThemeChangeListener(mThemeChangeListener);
 
         setupEventListeners();
@@ -711,7 +717,12 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
         if (updateActivity("loadRows") == null) return;
 
         // Two different row presenters, one standard for regular cards, one special for the icon items
-        ListRowPresenter listRowPresenter = new ListRowPresenter();
+        // BEGIN PULCIX DPAD INTEGRATION
+        CustomDpadListRowPresenter listRowPresenter = new CustomDpadListRowPresenter();
+        if (mActivity != null) {
+            listRowPresenter.setOnItemViewClickedListener(new MainViewClickedListener(mActivity));
+        }
+        // END PULCIX DPAD INTEGRATION
         IconItemRowPresenter iconItemRowPresenter = new IconItemRowPresenter();
 
         // Only way I found to use two different presenter is using a ClassPresenterSelector, hence i needed
@@ -722,6 +733,7 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
 
         // Basic header presenter for both row presenters
         listRowPresenter.setHeaderPresenter(new RowHeaderPresenter());
+        // END PULCIX DPAD INTEGRATION
         iconItemRowPresenter.setHeaderPresenter(new RowHeaderPresenter());
 
         mRowsAdapter = new ArrayObjectAdapter(rowsPresenterSelector);

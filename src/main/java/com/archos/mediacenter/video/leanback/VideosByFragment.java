@@ -37,6 +37,9 @@ import androidx.preference.PreferenceManager;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.browser.adapters.mappers.VideoCursorMapper;
 import com.archos.mediacenter.video.browser.loader.MoviesByLoader;
+// BEGIN PULCIX DPAD INTEGRATION
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+// END PULCIX DPAD INTEGRATION
 import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
 import com.archos.mediacenter.video.browser.loader.MoviesLoader;
@@ -180,7 +183,12 @@ public abstract class VideosByFragment extends BrowseSupportFragment implements 
 
         setupEventListeners();
 
-        RowPresenter rowPresenter = new ListRowPresenter();
+        // BEGIN PULCIX DPAD INTEGRATION
+        CustomDpadListRowPresenter rowPresenter = new CustomDpadListRowPresenter();
+        if (getActivity() != null) {
+            rowPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
+        }
+        // END PULCIX DPAD INTEGRATION
         rowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(rowPresenter);
         setAdapter(mRowsAdapter);
@@ -386,8 +394,11 @@ public abstract class VideosByFragment extends BrowseSupportFragment implements 
                 if (VideoPreferencesCommon.KEY_APP_THEME.equals(key)) {
                     if (log.isDebugEnabled()) log.debug("Theme changed, updating background and colors");
                     updateBackground();
-                    // Update brand color
+                    // BEGIN PULCIX CUSTOM THEME
+                    // Update brand color and search affordance color
                     setBrandColor(themeManager.getLeanbackHeaderColor());
+                    setSearchAffordanceColor(themeManager.getSearchAffordanceColor());
+                    // END PULCIX CUSTOM THEME
                 }
             }
         };

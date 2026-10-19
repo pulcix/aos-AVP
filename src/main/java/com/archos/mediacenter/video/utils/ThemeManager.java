@@ -41,30 +41,42 @@ public class ThemeManager {
     
     public static final String THEME_BLUE = "blue";
     public static final String THEME_BLACK = "black";
+    // BEGIN PULCIX CUSTOM THEME
+    public static final String THEME_INFUSE = "infuse";
+    // END PULCIX CUSTOM THEME
     
     private static ThemeManager sInstance;
     private SharedPreferences mPrefs;
     
     // Theme color resource IDs - resolved at runtime via getThemeColor()
-    private static final int[] GRID_ITEM_BACKGROUND = {R.color.theme_grid_item_blue, R.color.theme_grid_item_black};
-    private static final int[] LEANBACK_BACKGROUND = {R.color.theme_background_blue, R.color.theme_background_black};
-    private static final int[] LEANBACK_TRANSPARENT = {R.color.leanback_background_transparent, R.color.leanback_background_transparent};
-    private static final int[] LEANBACK_HEADER = {R.color.theme_header_blue, R.color.theme_header_black};
-    private static final int[] TOOLBAR_BACKGROUND = {R.color.theme_toolbar_blue, R.color.theme_toolbar_black};
-    private static final int[] DETAILS_PRIMARY = {R.color.theme_details_primary_blue, R.color.theme_details_primary_black};
-    private static final int[] DETAILS_SECONDARY = {R.color.theme_details_secondary_blue, R.color.theme_details_secondary_black};
-    private static final int[] CATEGORY_SELECTOR = {R.color.theme_category_selector_blue, R.color.theme_category_selector_black};
-    private static final int[] LIST_ITEM_PRESSED = {R.color.theme_list_pressed_blue, R.color.theme_list_pressed_black};
-    private static final int[] LIST_ITEM_FOCUSED = {R.color.theme_list_focused_blue, R.color.theme_list_focused_black};
-    private static final int[] GRADIENT_START = {R.color.theme_gradient_start_blue, R.color.theme_gradient_start_black};
-    private static final int[] GRADIENT_END = {R.color.theme_gradient_end_blue, R.color.theme_gradient_end_black};
-    private static final int[] RESCAN_COLOR = {R.color.theme_rescan_blue, R.color.theme_rescan_black};
-    private static final int[] SEARCH_AFFORDANCE = {R.color.theme_search_affordance_blue, R.color.theme_search_affordance_black};
+    // BEGIN PULCIX CUSTOM THEME
+    private static final int[] GRID_ITEM_BACKGROUND = {R.color.theme_grid_item_blue, R.color.theme_grid_item_black, R.color.theme_grid_item_infuse};
+    private static final int[] LEANBACK_BACKGROUND = {R.color.theme_background_blue, R.color.theme_background_black, R.color.theme_background_infuse};
+    private static final int[] LEANBACK_TRANSPARENT = {R.color.leanback_background_transparent, R.color.leanback_background_transparent, R.color.leanback_background_transparent};
+    private static final int[] LEANBACK_HEADER = {R.color.theme_header_blue, R.color.theme_header_black, R.color.theme_header_infuse};
+    private static final int[] TOOLBAR_BACKGROUND = {R.color.theme_toolbar_blue, R.color.theme_toolbar_black, R.color.theme_toolbar_infuse};
+    private static final int[] DETAILS_PRIMARY = {R.color.theme_details_primary_blue, R.color.theme_details_primary_black, R.color.theme_details_primary_infuse};
+    private static final int[] DETAILS_SECONDARY = {R.color.theme_details_secondary_blue, R.color.theme_details_secondary_black, R.color.theme_details_secondary_infuse};
+    private static final int[] CATEGORY_SELECTOR = {R.color.theme_category_selector_blue, R.color.theme_category_selector_black, R.color.theme_category_selector_infuse};
+    private static final int[] LIST_ITEM_PRESSED = {R.color.theme_list_pressed_blue, R.color.theme_list_pressed_black, R.color.theme_list_pressed_infuse};
+    private static final int[] LIST_ITEM_FOCUSED = {R.color.theme_list_focused_blue, R.color.theme_list_focused_black, R.color.theme_list_focused_infuse};
+    private static final int[] GRADIENT_START = {R.color.theme_gradient_start_blue, R.color.theme_gradient_start_black, R.color.theme_gradient_start_infuse};
+    private static final int[] GRADIENT_END = {R.color.theme_gradient_end_blue, R.color.theme_gradient_end_black, R.color.theme_gradient_end_infuse};
+    private static final int[] RESCAN_COLOR = {R.color.theme_rescan_blue, R.color.theme_rescan_black, R.color.theme_rescan_infuse};
+    private static final int[] SEARCH_AFFORDANCE = {R.color.theme_search_affordance_blue, R.color.theme_search_affordance_black, R.color.theme_search_affordance_infuse};
+    // END PULCIX CUSTOM THEME
     
     private Context mContext;
     
     private int getThemeColor(int[] colorArray) {
-        int index = isBlackTheme() ? 1 : 0;
+        int index = 0;
+        // BEGIN PULCIX CUSTOM THEME
+        if (isInfuseTheme()) {
+            index = 2;
+        } else if (isBlackTheme()) {
+            index = 1;
+        }
+        // END PULCIX CUSTOM THEME
         return ContextCompat.getColor(mContext, colorArray[index]);
     }
 
@@ -93,6 +105,15 @@ public class ThemeManager {
     public boolean isBlackTheme() {
         return THEME_BLACK.equals(getCurrentTheme());
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    /**
+     * Check if Infuse theme is active
+     */
+    public boolean isInfuseTheme() {
+        return THEME_INFUSE.equals(getCurrentTheme());
+    }
+    // END PULCIX CUSTOM THEME
     
     /**
      * Get color for grid item background
@@ -196,6 +217,11 @@ public class ThemeManager {
      * Get accent color for progress bars and other accent UI elements
      */
     public int getAccentColor() {
+        // BEGIN PULCIX CUSTOM THEME
+        if (isInfuseTheme()) {
+            return ContextCompat.getColor(mContext, R.color.theme_accent_infuse);
+        }
+        // END PULCIX CUSTOM THEME
         return ContextCompat.getColor(mContext, isBlackTheme() ? R.color.theme_accent_black : R.color.theme_accent_blue);
     }
 
@@ -203,8 +229,14 @@ public class ThemeManager {
      * Get private mode background color
      * Blue theme: dark navy blue
      * Black theme: dark charcoal grey
+     * Infuse theme: deep obsidian charcoal
      */
     public int getPrivateModeColor() {
+        // BEGIN PULCIX CUSTOM THEME
+        if (isInfuseTheme()) {
+            return ContextCompat.getColor(mContext, R.color.theme_private_mode_infuse);
+        }
+        // END PULCIX CUSTOM THEME
         return ContextCompat.getColor(mContext, isBlackTheme() ? R.color.theme_private_mode_black : R.color.theme_private_mode_blue);
     }
 

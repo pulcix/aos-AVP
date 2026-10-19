@@ -238,11 +238,15 @@ public class MainActivity extends BrowserActivity implements ExternalPlayerWithR
     public void onCreate(Bundle savedInstanceState) {
         // Apply correct theme before super.onCreate() to avoid visual flash
         ThemeManager themeManager = ThemeManager.getInstance(this);
-        if (themeManager.isBlackTheme()) {
+        // BEGIN PULCIX CUSTOM THEME
+        if (themeManager.isInfuseTheme()) {
+            setTheme(R.style.ArchosThemeInfuseNoActionBar);
+        } else if (themeManager.isBlackTheme()) {
             setTheme(R.style.ArchosThemeBlackNoActionBar);
         } else {
             setTheme(R.style.ArchosThemeBlueNoActionBar);
         }
+        // END PULCIX CUSTOM THEME
         themeManager.applyWindowTheme(this);
         ((CustomApplication) getApplication()).loadLocale();
         //CustomApplication.loadLocale(getResources());

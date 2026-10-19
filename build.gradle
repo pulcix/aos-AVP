@@ -14,11 +14,17 @@ buildscript {
 plugins {
     id "com.github.triplet.play" version "3.13.0" apply false
     id "io.sentry.android.gradle" version "6.0.0" apply false
+    // BEGIN PULCIX DPAD INTEGRATION
+    id "org.jetbrains.kotlin.android" version "1.9.24" apply false
+    // END PULCIX DPAD INTEGRATION
     //id "app.brant.amazonappstorepublisher" version "0.1.0"
 }
 
 apply {
     plugin("com.android.application")
+    // BEGIN PULCIX DPAD INTEGRATION
+    plugin("kotlin-android")
+    // END PULCIX DPAD INTEGRATION
 }
 
 // Only apply play plugin when publish tasks are requested
@@ -134,7 +140,15 @@ android {
         aidl = true
         buildConfig = true
         renderScript = false
+        // BEGIN PULCIX DPAD INTEGRATION
+        compose = true
+        // END PULCIX DPAD INTEGRATION
     }
+    // BEGIN PULCIX DPAD INTEGRATION
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+    // END PULCIX DPAD INTEGRATION
     compileSdk = 36
     sourceSets {
         main {
@@ -143,6 +157,12 @@ android {
             aidl.srcDirs = ['src/main/java']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
+        }
+        debug {
+            res.srcDirs = ['src/custom/res']
+        }
+        release {
+            res.srcDirs = ['src/custom/res']
         }
     }
     defaultConfig {
@@ -334,6 +354,10 @@ android {
 }
 
 dependencies {
+    // BEGIN PULCIX DPAD INTEGRATION
+    implementation "com.rubensousa.dpadrecyclerview:dpadrecyclerview:1.3.0"
+    // END PULCIX DPAD INTEGRATION
+    
     implementation project(':FileCoreLibrary')
     implementation project(':MediaLib')
     implementation 'androidx.lifecycle:lifecycle-process:2.10.0'

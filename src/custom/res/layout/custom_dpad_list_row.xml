@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="32dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- BEGIN PULCIX DPAD INTEGRATION -->
+    <com.rubensousa.dpadrecyclerview.DpadRecyclerView
+        android:id="@+id/custom_dpad_row_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="56dp"
+        android:paddingEnd="56dp"
+        android:paddingLeft="56dp"
+        android:paddingRight="56dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        app:dpadRecyclerViewParentAlignmentFraction="0.5"
+        app:dpadRecyclerViewParentAlignmentFractionEnabled="true"
+        app:dpadRecyclerViewChildAlignmentFraction="0.5"
+        app:dpadRecyclerViewChildAlignmentFractionEnabled="true" />
+    <!-- END PULCIX DPAD INTEGRATION -->
+
+</FrameLayout>

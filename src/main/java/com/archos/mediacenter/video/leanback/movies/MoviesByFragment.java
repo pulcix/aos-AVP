@@ -57,6 +57,9 @@ import com.archos.mediacenter.video.browser.loader.MoviesLoader;
 import com.archos.mediacenter.video.browser.loader.MoviesSelectionLoader;
 import com.archos.mediacenter.video.leanback.CompatibleCursorMapperConverter;
 import com.archos.mediacenter.video.leanback.VideoViewClickedListener;
+// BEGIN PULCIX DPAD INTEGRATION
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+// END PULCIX DPAD INTEGRATION
 import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
@@ -187,7 +190,12 @@ public abstract class MoviesByFragment extends BrowseSupportFragment implements 
 
         setupEventListeners();
 
-        RowPresenter rowPresenter = new ListRowPresenter();
+        // BEGIN PULCIX DPAD INTEGRATION
+        CustomDpadListRowPresenter rowPresenter = new CustomDpadListRowPresenter();
+        if (getActivity() != null) {
+            rowPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
+        }
+        // END PULCIX DPAD INTEGRATION
         rowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(rowPresenter);
         setAdapter(mRowsAdapter);

@@ -11,9 +11,14 @@ public class VideoSettingsLicencesActivity extends LeanbackActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Apply black theme variant for leanback preferences when in black theme
-        if (ThemeManager.getInstance(this).isBlackTheme()) {
+        // BEGIN PULCIX CUSTOM THEME
+        ThemeManager themeManager = ThemeManager.getInstance(this);
+        if (themeManager.isInfuseTheme()) {
+            setTheme(R.style.MyLeanbackTheme_Preferences_Infuse);
+        } else if (themeManager.isBlackTheme()) {
             setTheme(R.style.MyLeanbackTheme_Preferences_Black);
         }
+        // END PULCIX CUSTOM THEME
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_settings_licences);
     }

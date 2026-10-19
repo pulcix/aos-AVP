@@ -80,9 +80,13 @@ public class MainActivityLeanback extends LeanbackActivity {
         
         // Apply correct theme before super.onCreate() to avoid visual flash
         ThemeManager themeManager = ThemeManager.getInstance(this);
-        if (themeManager.isBlackTheme()) {
+        // BEGIN PULCIX CUSTOM THEME
+        if (themeManager.isInfuseTheme()) {
+            setTheme(R.style.MyLeanbackTheme_Infuse);
+        } else if (themeManager.isBlackTheme()) {
             setTheme(R.style.MyLeanbackTheme_Black);
         }
+        // END PULCIX CUSTOM THEME
         
         ((CustomApplication) getApplication()).loadLocale();
 

@@ -102,4 +102,36 @@
         <!-- required for preferenceFragment title background not to be gray -->
         <item name="android:colorPrimary">@color/theme_primary_black</item>
     </style>
+
+    <!-- Infuse theme variant for leanback -->
+    <style name="MyLeanbackTheme.Infuse" parent="Theme.Leanback">
+        <item name="android:windowBackground">@color/theme_background_infuse</item>
+        <item name="android:windowEnterTransition">@android:transition/fade</item>
+        <item name="android:windowExitTransition">@android:transition/fade</item>
+        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="colorPrimary">@color/theme_primary_infuse</item>
+        <item name="colorPrimaryDark">#090a0d</item>
+        <item name="colorAccent">@color/theme_accent_infuse</item>
+        <item name="alertDialogTheme">@style/Theme.AlertDialog.Infuse</item>
+    </style>
+
+    <!-- Infuse theme variant for leanback preferences -->
+    <style name="MyLeanbackTheme.Preferences.Infuse" parent="Theme.Leanback">
+        <item name="preferenceTheme">@style/MyLeanbackPreferenceTheme.Infuse</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="alertDialogTheme">@style/Theme.AlertDialog.Infuse</item>
+    </style>
+
+    <style name="MyLeanbackPreferenceTheme.Infuse" parent="PreferenceThemeOverlayLeanback">
+        <item name="android:windowBackground">@color/theme_background_infuse</item>
+        <item name="colorPrimary">@color/theme_primary_infuse</item>
+        <!-- required for preferenceFragment title background not to be gray -->
+        <item name="android:colorPrimary">@color/theme_primary_infuse</item>
+    </style>
 </resources>

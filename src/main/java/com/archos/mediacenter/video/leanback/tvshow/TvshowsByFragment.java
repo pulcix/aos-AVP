@@ -36,6 +36,9 @@ import androidx.preference.PreferenceManager;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.browser.adapters.mappers.TvshowCursorMapper;
 import com.archos.mediacenter.video.browser.loader.TvshowsByAlphaLoader;
+// BEGIN PULCIX DPAD INTEGRATION
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+// END PULCIX DPAD INTEGRATION
 import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
 import com.archos.mediacenter.video.browser.loader.TvshowsSelectionLoader;
@@ -178,7 +181,12 @@ public abstract class TvshowsByFragment extends BrowseSupportFragment implements
 
         setupEventListeners();
 
-        RowPresenter rowPresenter = new ListRowPresenter();
+        // BEGIN PULCIX DPAD INTEGRATION
+        CustomDpadListRowPresenter rowPresenter = new CustomDpadListRowPresenter();
+        if (getActivity() != null) {
+            rowPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
+        }
+        // END PULCIX DPAD INTEGRATION
         rowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(rowPresenter);
         setAdapter(mRowsAdapter);
