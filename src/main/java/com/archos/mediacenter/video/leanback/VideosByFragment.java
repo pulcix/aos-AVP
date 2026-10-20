@@ -170,8 +170,10 @@ public abstract class VideosByFragment extends BrowseSupportFragment implements 
         Resources r = getResources();
         updateBackground();
 
+        // BEGIN PULCIX CUSTOM THEME
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
+        // END PULCIX CUSTOM THEME
 
         // Apply theme-aware colors
         ThemeManager themeManager = ThemeManager.getInstance(getActivity());
@@ -183,12 +185,12 @@ public abstract class VideosByFragment extends BrowseSupportFragment implements 
 
         setupEventListeners();
 
-        // BEGIN PULCIX DPAD INTEGRATION
+        // BEGIN PULCIX CUSTOM THEME
         CustomDpadListRowPresenter rowPresenter = new CustomDpadListRowPresenter();
         if (getActivity() != null) {
             rowPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
         }
-        // END PULCIX DPAD INTEGRATION
+        // END PULCIX CUSTOM THEME
         rowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(rowPresenter);
         setAdapter(mRowsAdapter);

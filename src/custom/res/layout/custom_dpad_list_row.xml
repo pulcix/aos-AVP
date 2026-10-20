@@ -2,34 +2,39 @@
 <!--
      Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="32dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
+    android:layout_marginBottom="24dp"
+    android:orientation="vertical"
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- BEGIN PULCIX DPAD INTEGRATION -->
+    <!-- BEGIN PULCIX CUSTOM THEME -->
+    <TextView
+        android:id="@+id/custom_row_header_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/infuse_row_edge_spacing"
+        android:layout_marginBottom="4dp"
+        android:padding="0dp"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone" />
+
     <com.rubensousa.dpadrecyclerview.DpadRecyclerView
         android:id="@+id/custom_dpad_row_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingStart="56dp"
-        android:paddingEnd="56dp"
-        android:paddingLeft="56dp"
-        android:paddingRight="56dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        app:dpadRecyclerViewParentAlignmentFraction="0.5"
-        app:dpadRecyclerViewParentAlignmentFractionEnabled="true"
-        app:dpadRecyclerViewChildAlignmentFraction="0.5"
-        app:dpadRecyclerViewChildAlignmentFractionEnabled="true" />
-    <!-- END PULCIX DPAD INTEGRATION -->
+        android:focusableInTouchMode="true" />
+    <!-- END PULCIX CUSTOM THEME -->
 
-</FrameLayout>
+</LinearLayout>

@@ -288,8 +288,11 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
 
         Resources r = getResources();
         setBadgeDrawable(ContextCompat.getDrawable(mActivity, R.drawable.leanback_title));
-        setHeadersState(HEADERS_ENABLED);
-        setHeadersTransitionOnBackEnabled(true);
+        
+        // BEGIN PULCIX CUSTOM THEME
+        setHeadersState(HEADERS_DISABLED);
+        setHeadersTransitionOnBackEnabled(false);
+        // END PULCIX CUSTOM THEME
 
         // Apply theme-aware colors
         ThemeManager themeManager = ThemeManager.getInstance(mActivity);

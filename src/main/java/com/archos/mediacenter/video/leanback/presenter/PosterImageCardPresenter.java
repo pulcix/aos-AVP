@@ -97,13 +97,23 @@ public class PosterImageCardPresenter extends Presenter {
             mCardView.setFocusable(true);
             mCardView.setFocusableInTouchMode(true);
 
+            // BEGIN PULCIX CUSTOM THEME
+            InfuseCardStyler.applyInfuseCardStyle(mCardView);
+            // END PULCIX CUSTOM THEME
+
             View progressGroup = LayoutInflater.from(mContext).inflate(R.layout.leanback_resume, mCardView, false);
             mProgressBar = progressGroup.findViewById(R.id.resume_bar);
             // Set progressbar to 0 by default
             mProgressBar.getLayoutParams().width = 0;
-            BaseCardView.LayoutParams lp = new BaseCardView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.viewType = BaseCardView.LayoutParams.VIEW_TYPE_INFO;
-            mCardView.addView(progressGroup, mCardView.getChildCount(), lp);
+            
+            // BEGIN PULCIX CUSTOM THEME
+            // Aggiungiamo la progress bar direttamente nel mainRoot (FrameLayout) di CustomImageCardview
+            // così sta SOPRA il poster e viene tagliata assieme ad esso.
+            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.gravity = android.view.Gravity.BOTTOM;
+            progressGroup.setLayoutParams(lp);
+            mCardView.addViewToRoot(progressGroup);
+            // END PULCIX CUSTOM THEME
 
             mImageCardViewTarget = new PicassoImageCardViewTarget(mCardView);
         }
@@ -245,6 +255,27 @@ public class PosterImageCardPresenter extends Presenter {
             progress = (int) ((double) resumeMs / (double) durationMs * 100);
         if (DBG) Log.d(TAG, "bindVideo: resumeMs " + resumeMs + ", durationMs " +
                 durationMs + ", progess " + progress + "%");
+
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        
+        // Sottotitolo: Mostra l'anno di uscita in grigio chiaro per i film
+        if (video instanceof com.archos.mediacenter.video.browser.adapters.object.Movie) {
+            int year = ((com.archos.mediacenter.video.browser.adapters.object.Movie) video).getYear();
+            if (year > 0) {
+                vh.mCardView.setContentText(String.valueOf(year));
+            } else {
+                vh.mCardView.setContentText("");
+            }
+        } else if (!(video instanceof com.archos.mediacenter.video.browser.adapters.object.Episode)) {
+            // Pulizia preventiva per tipi non noti
+            vh.mCardView.setContentText("");
+        }
+        
+        // Riapplica lo styling dopo aver forzato un nuovo content text!
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        // END PULCIX CUSTOM THEME
+
         // setup the trakt flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
         vh.mImageCardViewTarget.setWatchedFlag(video.isWatched() || video.getResumeMs() == PlayerActivity.LAST_POSITION_END || progress >= Trakt.SCROBBLE_THRESHOLD);
 
@@ -259,7 +290,10 @@ public class PosterImageCardPresenter extends Presenter {
             switch (mEpisodeDisplayMode) {
                 case FOR_GENERAL_LIST:
                     card.setTitleText(episode.getShowName());
-                    card.setContentText(r.getString(R.string.leanback_episode_details_for_general_list, episode.getSeasonNumber(), episode.getEpisodeNumber(), episodeName));
+                    // BEGIN PULCIX CUSTOM THEME
+                    // Formato S{season} • E{episode} in stile Infuse, rimosso il titolo dell'episodio nel sottotitolo
+                    card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    // END PULCIX CUSTOM THEME
                     break;
                 case FOR_SEASON_LIST:
                     if(episode.getPictureUri()!=null) {
@@ -267,7 +301,9 @@ public class PosterImageCardPresenter extends Presenter {
                         isLarge = true;
                     }
                     card.setTitleText(r.getString(R.string.leanback_episode_name_for_season_list, episode.getEpisodeNumber(), episodeName));
-                    card.setContentText("");
+                    // BEGIN PULCIX CUSTOM THEME
+                    card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    // END PULCIX CUSTOM THEME
                     break;
             }
         }
@@ -275,7 +311,6 @@ public class PosterImageCardPresenter extends Presenter {
             if (video instanceof Movie) {
                 // Special Movie binding
                 card.setTitleText(video.getName());
-                card.setContentText("");
                 if (mLongClickListener != null) {
                     vh.view.setOnLongClickListener(mLongClickListener);
                     vh.mImageCardViewTarget.setPinnedFlag(((Movie)video).isPinned());
@@ -286,6 +321,12 @@ public class PosterImageCardPresenter extends Presenter {
                 card.setContentText("");
             }
         }
+
+        // BEGIN PULCIX CUSTOM THEME
+        // Forza l'aggiornamento visivo di stile su contentText (grigio chiaro, 12sp)
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        // END PULCIX CUSTOM THEME
+
          if (posterUri!=null) {
             if (!isLarge)
                 vh.updateCardView(posterUri, video.getId(),isLarge);
@@ -316,6 +357,10 @@ public class PosterImageCardPresenter extends Presenter {
     private void bindTvshow(VideoViewHolder vh, Tvshow tvshow) {
         final ImageCardView card = vh.getImageCardView();
 
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        // END PULCIX CUSTOM THEME
+
         // setup the watched flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
         vh.mImageCardViewTarget.setWatchedFlag(tvshow.isWatched());
 
@@ -344,6 +389,10 @@ public class PosterImageCardPresenter extends Presenter {
      */
     private void bindCollection(VideoViewHolder vh, Collection collection) {
         final ImageCardView card = vh.getImageCardView();
+
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        // END PULCIX CUSTOM THEME
 
         // setup the watched flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
         vh.mImageCardViewTarget.setWatchedFlag(collection.isWatched());

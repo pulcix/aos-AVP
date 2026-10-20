@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:drawable="@drawable/fg_infuse_focus_border" />
+    <item android:state_selected="true" android:drawable="@drawable/fg_infuse_focus_border" />
+    <item android:drawable="@drawable/bg_card_stroke_inset" />
+</selector>

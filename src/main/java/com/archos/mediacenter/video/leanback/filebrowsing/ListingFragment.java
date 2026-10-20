@@ -393,13 +393,17 @@ public abstract class ListingFragment extends MyVerticalGridFragment implements 
 
         switch (mDisplayMode) {
             case GRID:
-                zoom = FocusHighlight.ZOOM_FACTOR_LARGE;
+                // BEGIN PULCIX CUSTOM THEME
+                zoom = FocusHighlight.ZOOM_FACTOR_NONE; // Disabled native zoom for custom Infuse zoom
+                // END PULCIX CUSTOM THEME
                 focusDimmer = false;
                 numberOfColumns = 6;
                 shadowEnabled = true;
                 break;
             case LIST:
-                zoom = FocusHighlight.ZOOM_FACTOR_SMALL;
+                // BEGIN PULCIX CUSTOM THEME
+                zoom = FocusHighlight.ZOOM_FACTOR_NONE; // Disabled native zoom for custom Infuse zoom
+                // END PULCIX CUSTOM THEME
                 focusDimmer = false;
                 numberOfColumns = 1;
                 shadowEnabled = true;

@@ -130,6 +130,10 @@ public class IconItemPresenter extends Presenter {
         Icon icon = (Icon)item;
         vh.mImageView.setImageResource(icon.getIconResId());
         vh.mTitleView.setText(icon.getName());
+
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseCardStyler.applyInfuseCardStyle(vh.mBaseCard);
+        // END PULCIX CUSTOM THEME
     }
 
     @Override

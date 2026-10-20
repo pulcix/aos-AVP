@@ -150,12 +150,27 @@ public class AllTvshowsGridFragment extends MyVerticalGridFragment implements Lo
         switch (mDisplayMode) {
             case GRID:
                 filePresenter = new PosterImageCardPresenter(getActivity(), longClickListener);
-                vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_LARGE, false); // No focus dimmer
-                vgp.setNumberOfColumns(6);
+                // BEGIN PULCIX CUSTOM THEME
+                vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_NONE, false) {
+                    @Override
+                    protected void initializeGridViewHolder(ViewHolder vh) {
+                        super.initializeGridViewHolder(vh);
+                        androidx.leanback.widget.VerticalGridView gridView = vh.getGridView();
+                        int spacingPx = gridView.getResources().getDimensionPixelSize(R.dimen.infuse_row_item_spacing);
+                        gridView.setHorizontalSpacing(spacingPx);
+                        gridView.setVerticalSpacing(spacingPx);
+                        gridView.setClipChildren(false);
+                        gridView.setClipToPadding(false);
+                    }
+                };
+                vgp.setNumberOfColumns(5); // Reduce from 6 to 5 to accommodate larger spacing
+                // END PULCIX CUSTOM THEME
                 break;
             case LIST:
                 filePresenter = new VideoListPresenter(false, longClickListener);
-                vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_SMALL, false); // No focus dimmer
+                // BEGIN PULCIX CUSTOM THEME
+                vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_NONE, false); // Disabled native zoom for custom Infuse zoom
+                // END PULCIX CUSTOM THEME
                 vgp.setNumberOfColumns(1);
                 break;
         }

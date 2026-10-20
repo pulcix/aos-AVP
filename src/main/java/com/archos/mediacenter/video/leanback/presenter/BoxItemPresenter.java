@@ -80,6 +80,10 @@ public class BoxItemPresenter extends Presenter {
         } else {
             vh.getImageView().setImageResource(box.getIconResId());
         }
+
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
+        // END PULCIX CUSTOM THEME
     }
 
     @Override
