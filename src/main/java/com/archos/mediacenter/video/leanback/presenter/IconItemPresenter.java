@@ -129,8 +129,10 @@ public class IconItemPresenter extends Presenter {
         ViewHolder vh = (ViewHolder)viewHolder;
         Icon icon = (Icon)item;
         vh.mImageView.setImageResource(icon.getIconResId());
+vh.mImageView.setImageResource(icon.getIconResId());
         vh.mTitleView.setText(icon.getName());
 
+        // BEGIN PULCIX CUSTOM THEME
         // BEGIN PULCIX CUSTOM THEME
         InfuseCardStyler.applyInfuseCardStyle(vh.mBaseCard);
         // END PULCIX CUSTOM THEME
