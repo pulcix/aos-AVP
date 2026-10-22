@@ -189,12 +189,21 @@ public abstract class AnimesByFragment extends BrowseSupportFragment implements 
         setupEventListeners();
 
         // BEGIN PULCIX CUSTOM THEME
-        CustomDpadListRowPresenter rowPresenter = new CustomDpadListRowPresenter();
-        if (getActivity() != null) {
-            rowPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
+        boolean isInfuse = ThemeManager.getInstance(getActivity()).isInfuseTheme();
+        RowPresenter rowPresenter;
+        if (isInfuse) {
+            CustomDpadListRowPresenter dpadPresenter = new CustomDpadListRowPresenter();
+            if (getActivity() != null) {
+                dpadPresenter.setOnItemViewClickedListener(new VideoViewClickedListener(getActivity()));
+            }
+            dpadPresenter.setHeaderPresenter(new RowHeaderPresenter());
+            rowPresenter = dpadPresenter;
+        } else {
+            ListRowPresenter standardPresenter = new ListRowPresenter();
+            standardPresenter.setHeaderPresenter(new RowHeaderPresenter());
+            rowPresenter = standardPresenter;
         }
         // END PULCIX CUSTOM THEME
-        rowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(rowPresenter);
         setAdapter(mRowsAdapter);
 

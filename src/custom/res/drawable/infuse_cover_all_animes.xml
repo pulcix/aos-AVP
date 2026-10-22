@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Sfondo Gradiente Lineare Orizzontale (Acqua / Smeraldo) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#52099A"
+                android:endColor="#6B0CC7"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Icona vettoriale: Fotogramma di pellicola con pallina rimbalzante (Animation) -->
+    <item
+        android:width="64dp"
+        android:height="64dp"
+        android:gravity="center">
+        <vector
+            android:width="64dp"
+            android:height="64dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+
+            <!-- Cornice esterna del fotogramma (spigoli arrotondati) -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.4"
+                android:strokeLineJoin="round"
+                android:strokeLineCap="round"
+                android:pathData="M4,4 h16 a2,2 0 0 1 2,2 v12 a2,2 0 0 1 -2,2 h-16 a2,2 0 0 1 -2,-2 v-12 a2,2 0 0 1 2,-2 z" />
+
+            <!-- Linee orizzontali che separano le fasce di perforazione dall'area immagine -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.0"
+                android:strokeLineCap="round"
+                android:pathData="M2,8 h20 M2,16 h20" />
+
+            <!-- Linea verticale sinistra (margine del fotogramma) -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.0"
+                android:strokeLineCap="round"
+                android:pathData="M6,8 v8" />
+
+
+            <!-- Perforazioni: 9 quadratini pieni con angoli stondati, passo 2, sopra e sotto -->
+            <path
+                android:fillColor="#FFFFFF"
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="0.3"
+                android:strokeLineJoin="round"
+                android:pathData="
+                    M3.6,5.6 h0.8 v0.8 h-0.8 z
+                    M5.6,5.6 h0.8 v0.8 h-0.8 z
+                    M7.6,5.6 h0.8 v0.8 h-0.8 z
+                    M9.6,5.6 h0.8 v0.8 h-0.8 z
+                    M11.6,5.6 h0.8 v0.8 h-0.8 z
+                    M13.6,5.6 h0.8 v0.8 h-0.8 z
+                    M15.6,5.6 h0.8 v0.8 h-0.8 z
+                    M17.6,5.6 h0.8 v0.8 h-0.8 z
+                    M19.6,5.6 h0.8 v0.8 h-0.8 z
+                    M3.6,17.6 h0.8 v0.8 h-0.8 z
+                    M5.6,17.6 h0.8 v0.8 h-0.8 z
+                    M7.6,17.6 h0.8 v0.8 h-0.8 z
+                    M9.6,17.6 h0.8 v0.8 h-0.8 z
+                    M11.6,17.6 h0.8 v0.8 h-0.8 z
+                    M13.6,17.6 h0.8 v0.8 h-0.8 z
+                    M15.6,17.6 h0.8 v0.8 h-0.8 z
+                    M17.6,17.6 h0.8 v0.8 h-0.8 z
+                    M19.6,17.6 h0.8 v0.8 h-0.8 z
+                " />
+
+            <!-- Caduta: curva che parte dal margine sinistro e scende verso il punto di contatto -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:pathData="M8,9.8 Q11.2,10.2 12.4,14.2" />
+
+            <!-- Rimbalzo: arco che parte dal centro con colorata nel punto di rimbalzo -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:pathData="M12.4,14.2 C12.8,13.8 13.5,13.3 14.2,12.9" />
+
+              <!-- Pallina (cerchio perfetto) all'apice del rimbalzo -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.2"
+                android:pathData="M18.2,11.5 a1.4,1.4 0 1,0 -2.8,0 a1.4,1.4 0 1,0 2.8,0 z" />
+
+        </vector>
+    </item>
+</layer-list>

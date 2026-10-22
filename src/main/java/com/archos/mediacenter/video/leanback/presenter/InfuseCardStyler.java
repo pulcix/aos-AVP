@@ -6,12 +6,14 @@ import android.view.ViewGroup;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.BaseCardView;
 import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import androidx.core.content.ContextCompat;
 
 public class InfuseCardStyler {
 
     public static void applyInfuseCardStyle(View cardView) {
         if (cardView == null) return;
+        if (!ThemeManager.getInstance(cardView.getContext()).isInfuseTheme()) return;
 
         // RIMOZIONE RIMASUGLI GRIGI AGLI ANGOLI
         cardView.setBackgroundColor(android.graphics.Color.TRANSPARENT);

@@ -70,19 +70,68 @@ public class BoxItemPresenter extends Presenter {
         final BoxViewHolder vh = (BoxViewHolder)viewHolder;
         Box box = (Box)item;
         
-        // Apply theme color to image container background (must be in onBind to update on theme change)
-        vh.mImageViewContainer.setBackgroundColor(ThemeManager.getInstance(vh.mCard.getContext()).getLeanbackHeaderColor());
-        
+        // BEGIN PULCIX CUSTOM THEME
+        boolean isInfuseTheme = ThemeManager.getInstance(vh.mCard.getContext()).isInfuseTheme();
+
         vh.getTextView().setText(box.getName());
 
-        if (box.getBitmap()!=null) {
-            vh.getImageView().setImageBitmap(box.getBitmap());
-        } else {
-            vh.getImageView().setImageResource(box.getIconResId());
+        int customDrawable = 0;
+        if (isInfuseTheme && box.getBoxId() != null) {
+            switch (box.getBoxId()) {
+                case ALL_MOVIES:
+                    customDrawable = R.drawable.infuse_cover_all_movies;
+                    break;
+                case ALL_ANIMES:
+                    customDrawable = R.drawable.infuse_cover_all_animes;
+                    break;
+                case ALL_TVSHOWS:
+                case ALL_ANIMESHOWS:
+                    customDrawable = R.drawable.infuse_cover_tv_shows;
+                    break;
+                case MOVIES_BY_GENRE:
+                case TVSHOWS_BY_GENRE:
+                case ANIMES_BY_GENRE:
+                    customDrawable = R.drawable.infuse_cover_genre;
+                    break;
+                case MOVIES_BY_YEAR:
+                case ANIMES_BY_YEAR:
+                case EPISODES_BY_DATE:
+                    customDrawable = R.drawable.infuse_cover_year;
+                    break;
+                case COLLECTIONS:
+                case ANIME_COLLECTIONS:
+                    customDrawable = R.drawable.infuse_cover_collections;
+                    break;
+                // Network & Files row: restore original Nova icons (do not override)
+                case NETWORK:
+                case FTP:
+                case USB:
+                case SDCARD:
+                case FOLDERS:
+                case NON_SCRAPED_VIDEOS:
+                    customDrawable = 0;
+                    break;
+            }
         }
 
-        // BEGIN PULCIX CUSTOM THEME
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
+        if (customDrawable != 0) {
+            vh.getImageView().setImageResource(customDrawable);
+            vh.getImageView().setScaleType(ImageView.ScaleType.FIT_XY); // Expand to fill 16:9 box correctly!
+            vh.mImageViewContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            vh.mImageViewContainer.setBackground(null);
+        } else {
+            vh.mImageViewContainer.setBackgroundColor(ThemeManager.getInstance(vh.mCard.getContext()).getLeanbackHeaderColor());
+            if (box.getBitmap() != null) {
+                vh.getImageView().setImageBitmap(box.getBitmap());
+            } else {
+                vh.getImageView().setImageResource(box.getIconResId());
+                vh.getImageView().setScaleType(ImageView.ScaleType.CENTER);
+            }
+        }
+
+        if (isInfuseTheme) {
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
+        }
         // END PULCIX CUSTOM THEME
     }
 

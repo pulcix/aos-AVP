@@ -158,78 +158,12 @@ public class CustomDpadListRowPresenter extends RowPresenter {
                 ItemBridgeAdapter bridgeAdapter = new ItemBridgeAdapter(listAdapter);
 
                 bridgeAdapter.setAdapterListener(new ItemBridgeAdapter.AdapterListener() {
-                    
-                    private void applyInfuseCardStyle(View cardView) {
-                        // RIMOZIONE RIMASUGLI GRIGI AGLI ANGOLI
-                        cardView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                        cardView.setBackground(null);
-
-                        View targetView = cardView;
-
-                        if (cardView instanceof androidx.leanback.widget.ImageCardView) {
-                            androidx.leanback.widget.ImageCardView imageCardView = (androidx.leanback.widget.ImageCardView) cardView;
-                            imageCardView.setInfoAreaBackground(null);
-                            imageCardView.setInfoAreaBackgroundColor(android.graphics.Color.TRANSPARENT);
-                            if (imageCardView.getMainImageView() != null) {
-                                targetView = imageCardView.getMainImageView();
-                            }
-                        }
-                        
-                        // RIMOZIONE FASCIA GRIGIA SULLE ALTRE CARD
-                        View infoField = cardView.findViewById(androidx.leanback.R.id.info_field);
-                        if (infoField != null) {
-                            infoField.setVisibility(View.VISIBLE);
-                            infoField.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                            infoField.setBackground(null);
-                        }
-
-                        // ARROTONDAMENTO (14dp) SULLA TARGET VIEW (es. MainImageView per i poster)
-                        targetView.setOutlineProvider(new android.view.ViewOutlineProvider() {
-                            @Override
-                            public void getOutline(View view, android.graphics.Outline outline) {
-                                float radius = view.getResources().getDimension(R.dimen.infuse_card_corner_radius);
-                                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
-                            }
-                        });
-                        targetView.setClipToOutline(true);
-                    }
 
                     @Override
                     public void onCreate(ItemBridgeAdapter.ViewHolder ibvh) {
                         if (ibvh != null && ibvh.getViewHolder() != null && ibvh.getViewHolder().view != null) {
                             View cardView = ibvh.getViewHolder().view;
-                            
-                            applyInfuseCardStyle(cardView);
-
-                            View targetViewLocal = cardView;
-                            if (cardView instanceof androidx.leanback.widget.ImageCardView) {
-                                android.widget.ImageView mainImage = ((androidx.leanback.widget.ImageCardView) cardView).getMainImageView();
-                                if (mainImage != null) targetViewLocal = mainImage;
-                            }
-                            final View finalTargetView = targetViewLocal;
-
-                            // EFFETTO ZOOM FOCUS E BORDO AMBRA DINAMICO
-                            cardView.setOnFocusChangeListener((v, hasFocus) -> {
-                                if (hasFocus) {
-                                    finalTargetView.setForeground(androidx.core.content.ContextCompat.getDrawable(v.getContext(), R.drawable.selector_infuse_card_foreground));
-                                    v.animate()
-                                        .scaleX(1.15f)
-                                        .scaleY(1.15f)
-                                        .translationZ(16f)
-                                        .setDuration(200)
-                                        .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
-                                        .start();
-                                } else {
-                                    finalTargetView.setForeground(null);
-                                    v.animate()
-                                        .scaleX(1.0f)
-                                        .scaleY(1.0f)
-                                        .translationZ(0f)
-                                        .setDuration(160)
-                                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
-                                        .start();
-                                }
-                            });
+                            InfuseCardStyler.applyInfuseCardStyle(cardView);
                         }
                     }
 
@@ -237,7 +171,7 @@ public class CustomDpadListRowPresenter extends RowPresenter {
                     public void onBind(ItemBridgeAdapter.ViewHolder ibvh) {
                         if (ibvh != null && ibvh.getViewHolder() != null && ibvh.getViewHolder().view != null) {
                             // Riapplica lo stile trasparente perché i Presenter di Nova reimpostano i background grigi su onBind!
-                            applyInfuseCardStyle(ibvh.getViewHolder().view);
+                            InfuseCardStyler.applyInfuseCardStyle(ibvh.getViewHolder().view);
 
                             ibvh.getViewHolder().view.setOnClickListener(v -> {
                                 if (mOnItemViewClickedListener != null) {

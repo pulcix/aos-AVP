@@ -246,6 +246,17 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         currentLocale = CustomApplication.getUiLocale(getContext());
+        
+        // BEGIN PULCIX CUSTOM THEME
+        boolean isInfuse = ThemeManager.getInstance(getContext()).isInfuseTheme();
+        if (isInfuse) {
+            setHeadersState(HEADERS_DISABLED);
+            setHeadersTransitionOnBackEnabled(false);
+        } else {
+            setHeadersState(HEADERS_ENABLED);
+            setHeadersTransitionOnBackEnabled(true);
+        }
+        // END PULCIX CUSTOM THEME
     }
 
     private Activity updateActivity(String callingMethod) {
@@ -288,11 +299,6 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
 
         Resources r = getResources();
         setBadgeDrawable(ContextCompat.getDrawable(mActivity, R.drawable.leanback_title));
-        
-        // BEGIN PULCIX CUSTOM THEME
-        setHeadersState(HEADERS_DISABLED);
-        setHeadersTransitionOnBackEnabled(false);
-        // END PULCIX CUSTOM THEME
 
         // Apply theme-aware colors
         ThemeManager themeManager = ThemeManager.getInstance(mActivity);
@@ -721,23 +727,30 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
 
         // Two different row presenters, one standard for regular cards, one special for the icon items
         // BEGIN PULCIX DPAD INTEGRATION
-        CustomDpadListRowPresenter listRowPresenter = new CustomDpadListRowPresenter();
-        if (mActivity != null) {
-            listRowPresenter.setOnItemViewClickedListener(new MainViewClickedListener(mActivity));
+        boolean isInfuse = ThemeManager.getInstance(mActivity).isInfuseTheme();
+        RowPresenter listRowPresenter;
+        if (isInfuse) {
+            CustomDpadListRowPresenter dpadPresenter = new CustomDpadListRowPresenter();
+            if (mActivity != null) {
+                dpadPresenter.setOnItemViewClickedListener(new MainViewClickedListener(mActivity));
+            }
+            dpadPresenter.setHeaderPresenter(new RowHeaderPresenter());
+            listRowPresenter = dpadPresenter;
+        } else {
+            ListRowPresenter standardPresenter = new ListRowPresenter();
+            standardPresenter.setHeaderPresenter(new RowHeaderPresenter());
+            listRowPresenter = standardPresenter;
         }
         // END PULCIX DPAD INTEGRATION
         IconItemRowPresenter iconItemRowPresenter = new IconItemRowPresenter();
+        iconItemRowPresenter.setHeaderPresenter(new RowHeaderPresenter());
 
         // Only way I found to use two different presenter is using a ClassPresenterSelector, hence i needed
         // to create a dummy IconListRow that does nothing more than a regular ListRow
         ClassPresenterSelector rowsPresenterSelector = new ClassPresenterSelector();
         rowsPresenterSelector.addClassPresenter(ListRow.class, listRowPresenter);
         rowsPresenterSelector.addClassPresenter(IconListRow.class, iconItemRowPresenter);
-
-        // Basic header presenter for both row presenters
-        listRowPresenter.setHeaderPresenter(new RowHeaderPresenter());
         // END PULCIX DPAD INTEGRATION
-        iconItemRowPresenter.setHeaderPresenter(new RowHeaderPresenter());
 
         mRowsAdapter = new ArrayObjectAdapter(rowsPresenterSelector);
 

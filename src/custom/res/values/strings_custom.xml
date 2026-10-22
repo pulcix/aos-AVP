@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Custom theme strings -->
     <string name="theme_infuse">Infuse Dark</string>
 
@@ -14,4 +14,7 @@
         <item>black</item>
         <item>infuse</item>
     </string-array>
+
+    <!-- Capitalize "TV Shows" to match Infuse style -->
+    <string name="all_tv_shows" tools:override="true">TV Shows</string>
 </resources>
