@@ -30,12 +30,68 @@ import android.widget.TextView;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.leanback.widget.HintView;
 
+import com.archos.mediacenter.video.utils.ThemeManager;
+import android.app.Activity;
+import android.content.Intent;
+import android.widget.Toast;
+import com.archos.mediaprovider.video.NetworkAutoRefresh;
+import com.archos.mediacenter.video.leanback.settings.VideoSettingsActivity;
+import com.archos.mediacenter.video.leanback.MainActivityLeanback;
+import androidx.leanback.widget.TitleViewAdapter;
+
 import java.util.ArrayList;
 
 /**
  * Title view for a leanback fragment.
  */
-public class MyTitleView extends RelativeLayout {
+public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Provider {
+
+    private final TitleViewAdapter mTitleViewAdapter = new TitleViewAdapter() {
+        @Override
+        public View getSearchAffordanceView() {
+            return MyTitleView.this.getSearchAffordanceView();
+        }
+        @Override
+        public void setOnSearchClickedListener(View.OnClickListener listener) {
+            MyTitleView.this.setOnSearchClickedListener(listener);
+        }
+        @Override
+        public void setAnimationEnabled(boolean enable) {
+            MyTitleView.this.enableAnimation(enable);
+        }
+        @Override
+        public Drawable getBadgeDrawable() {
+            return MyTitleView.this.getBadgeDrawable();
+        }
+        @Override
+        public SearchOrbView.Colors getSearchAffordanceColors() {
+            return MyTitleView.this.getSearchAffordanceColors();
+        }
+        @Override
+        public CharSequence getTitle() {
+            return MyTitleView.this.getTitle();
+        }
+        @Override
+        public void setBadgeDrawable(Drawable drawable) {
+            MyTitleView.this.setBadgeDrawable(drawable);
+        }
+        @Override
+        public void setSearchAffordanceColors(SearchOrbView.Colors colors) {
+            MyTitleView.this.setSearchAffordanceColors(colors);
+        }
+        @Override
+        public void setTitle(CharSequence titleText) {
+            if (titleText != null) MyTitleView.this.setTitle(titleText.toString());
+        }
+        @Override
+        public void updateComponentsVisibility(int flags) {
+        }
+    };
+
+    @Override
+    public TitleViewAdapter getTitleViewAdapter() {
+        return mTitleViewAdapter;
+    }
 
     private ImageView mBadgeView;
     private TextView mTextView;
@@ -53,6 +109,18 @@ public class MyTitleView extends RelativeLayout {
     private TextView mOrb5Description; // ARCHOS added
 
     private SearchOrbView mLastOrb;
+
+    // BEGIN PULCIX CUSTOM THEME
+    private View mInfuseSearchContainer;
+    private ImageView mInfuseSearchIcon;
+    private TextView mInfuseSearchText;
+    private View mInfuseActionsContainer;
+    private ImageView mBtnInfuseSort;
+    private ImageView mBtnInfuseRefresh;
+    private ImageView mBtnInfuseSettings;
+    private OnClickListener mInfuseSortClickListener;
+    private OnClickListener mSearchClickListener;
+    // END PULCIX CUSTOM THEME
 
     public MyTitleView(Context context) {
         this(context, null);
@@ -93,12 +161,100 @@ public class MyTitleView extends RelativeLayout {
         mSearchOrbView4.setOnFocusChangeListener(mOrbsFocusListener);
         mSearchOrbView5.setOnFocusChangeListener(mOrbsFocusListener);
 
+        // BEGIN PULCIX CUSTOM THEME
+        mInfuseSearchContainer = rootView.findViewById(R.id.infuse_search_container);
+        mInfuseSearchIcon = rootView.findViewById(R.id.infuse_search_icon);
+        mInfuseSearchText = rootView.findViewById(R.id.infuse_search_text);
+        mInfuseActionsContainer = rootView.findViewById(R.id.infuse_actions_container);
+        mBtnInfuseSort = rootView.findViewById(R.id.btn_infuse_sort);
+        mBtnInfuseRefresh = rootView.findViewById(R.id.btn_infuse_refresh);
+        mBtnInfuseSettings = rootView.findViewById(R.id.btn_infuse_settings);
+
+        if (ThemeManager.getInstance(context).isInfuseTheme()) {
+            mBadgeView.setVisibility(View.GONE);
+            mTextView.setVisibility(View.GONE);
+            mSearchOrbView.setVisibility(View.GONE);
+            
+            if (mInfuseSearchContainer != null) {
+                mInfuseSearchContainer.setVisibility(View.VISIBLE);
+                mInfuseSearchContainer.setOnFocusChangeListener(mInfuseFocusListener);
+                mInfuseSearchContainer.setOnClickListener(v -> {
+                    if (mSearchClickListener != null) {
+                        mSearchClickListener.onClick(v);
+                    } else {
+                        mSearchOrbView.performClick();
+                    }
+                });
+            }
+            if (mInfuseActionsContainer != null) {
+                mInfuseActionsContainer.setVisibility(View.VISIBLE);
+                mBtnInfuseSort.setOnFocusChangeListener(mInfuseFocusListener);
+                mBtnInfuseRefresh.setOnFocusChangeListener(mInfuseFocusListener);
+                mBtnInfuseSettings.setOnFocusChangeListener(mInfuseFocusListener);
+
+                mBtnInfuseSettings.setOnClickListener(v -> {
+                    if (context instanceof Activity) {
+                        Activity activity = (Activity) context;
+                        activity.startActivityForResult(new Intent(activity, VideoSettingsActivity.class), MainActivityLeanback.ACTIVITY_REQUEST_CODE_PREFERENCES);
+                    }
+                });
+
+                mBtnInfuseRefresh.setOnClickListener(v -> {
+                    if (context instanceof Activity) {
+                        NetworkAutoRefresh.forceRescan((Activity) context);
+                        Toast.makeText(context, R.string.rescrap_movies_in_progress, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                mBtnInfuseSort.setOnClickListener(v -> {
+                    if (mInfuseSortClickListener != null) {
+                        mInfuseSortClickListener.onClick(v);
+                    } else if (context instanceof MainActivityLeanback) {
+                        context.startActivity(new Intent(context, com.archos.mediacenter.video.leanback.movies.AllMoviesGridActivity.class));
+                    }
+                });
+            }
+        }
+        // END PULCIX CUSTOM THEME
+
         setClipToPadding(false);
         setClipChildren(false);
     }
 
+    // BEGIN PULCIX CUSTOM THEME
+    private final OnFocusChangeListener mInfuseFocusListener = new OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View view, boolean focus) {
+            float scale = focus ? 1.15f : 1.0f;
+            int tintColor = focus ? 0xFFFF7F02 : 0xFF8E8E93; // Infuse Orange or Grey
+
+            view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
+
+            if (view == mInfuseSearchContainer) {
+                mInfuseSearchIcon.setColorFilter(tintColor);
+                mInfuseSearchText.setTextColor(tintColor);
+            } else if (view instanceof ImageView) {
+                ((ImageView) view).setColorFilter(tintColor);
+            }
+        }
+    };
+
+    public void setOnSortClickedListener(OnClickListener listener) {
+        mInfuseSortClickListener = listener;
+    }
+    // END PULCIX CUSTOM THEME
+
     @Override
     protected boolean onRequestFocusInDescendants(int direction, Rect previouslyFocusedRect) {
+        // BEGIN PULCIX CUSTOM THEME
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (mInfuseSearchContainer != null && mInfuseSearchContainer.getVisibility() == View.VISIBLE) {
+                return mInfuseSearchContainer.requestFocus();
+            }
+            return false;
+        }
+        // END PULCIX CUSTOM THEME
+
         if (mLastOrb != null && mLastOrb.getVisibility() == View.VISIBLE && mLastOrb.requestFocus())
             return true;
 
@@ -134,6 +290,9 @@ public class MyTitleView extends RelativeLayout {
      */
     public void setTitle(String titleText) {
         mTextView.setText(titleText);
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mTextView.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -149,6 +308,11 @@ public class MyTitleView extends RelativeLayout {
      */
     public void setBadgeDrawable(Drawable drawable) {
         mBadgeView.setImageDrawable(drawable);
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mBadgeView.setVisibility(View.GONE);
+            mTextView.setVisibility(View.GONE);
+            return;
+        }
         if (drawable != null) {
             mBadgeView.setVisibility(View.VISIBLE);
             mTextView.setVisibility(View.GONE);
@@ -169,10 +333,12 @@ public class MyTitleView extends RelativeLayout {
      * Sets the listener to be called when the search affordance is clicked.
      */
     public void setOnSearchClickedListener(View.OnClickListener listener) {
+        mSearchClickListener = listener;
         mSearchOrbView.setOnOrbClickedListener(listener);
     }
 
     public void setOnOrb1ClickedListener(View.OnClickListener listener) {
+        mSearchClickListener = listener;
         mSearchOrbView.setOnOrbClickedListener(listener);
         mSearchOrbView.setVisibility(listener != null ? View.VISIBLE : View.GONE);
     }

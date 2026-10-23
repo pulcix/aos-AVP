@@ -273,7 +273,7 @@ public class AllAnimesGridFragment extends MyVerticalGridFragment implements Loa
         });
 
         // Set third orb action
-        getTitleView().setOnOrb3ClickedListener(new View.OnClickListener() {
+        View.OnClickListener sortClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSortOrderItem = AnimesSortOrderEntry.sortOrder2Item(mSortOrder, sortOrderIndexer);
@@ -295,7 +295,9 @@ public class AllAnimesGridFragment extends MyVerticalGridFragment implements Loa
                         })
                         .create().show();
             }
-        });
+        };
+        getTitleView().setOnOrb3ClickedListener(sortClickListener);
+        getTitleView().setOnSortClickedListener(sortClickListener);
 
         // Set fourth orb action
         getTitleView().setOnOrb4ClickedListener(new View.OnClickListener() {

@@ -850,9 +850,13 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
             mPreferencesRowAdapter.add(new Icon(Icon.ID.SPONSOR, getString(R.string.sponsor), R.drawable.piggy_bank_leanback_256));
         }
         // Must use an IconListRow to have the dedicated presenter used (see ClassPresenterSelector above)
-        mRowsAdapter.add(new IconListRow(ROW_ID_PREFERENCES,
-                new HeaderItem(getString(R.string.preferences)),
-                mPreferencesRowAdapter));
+        // BEGIN PULCIX CUSTOM THEME
+        if (!isInfuse) {
+            mRowsAdapter.add(new IconListRow(ROW_ID_PREFERENCES,
+                    new HeaderItem(getString(R.string.preferences)),
+                    mPreferencesRowAdapter));
+        }
+        // END PULCIX CUSTOM THEME
 
         setAdapter(mRowsAdapter);
     }

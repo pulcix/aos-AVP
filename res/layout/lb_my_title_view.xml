@@ -173,7 +173,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/title_orb5"
         android:layout_alignEnd="@+id/title_orb5"
-        android:layout_alignStart="@+id/title_orb5s"
+        android:layout_alignStart="@+id/title_orb5"
         android:layout_marginEnd="-64dip"
         android:layout_marginStart="-64dip"
         android:layout_marginTop="0dip"
@@ -182,5 +182,80 @@
         android:singleLine="true"
         android:gravity="center"
         android:translationY="32dip"/>
+
+    <!-- BEGIN PULCIX CUSTOM THEME: Infuse Top Bar Elements -->
+    <LinearLayout
+        android:id="@+id/infuse_search_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/infuse_search_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_infuse_search"
+            app:tint="#8E8E93" />
+
+        <TextView
+            android:id="@+id/infuse_search_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Search"
+            android:textColor="#8E8E93"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/infuse_actions_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/btn_infuse_sort"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="24dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:src="@drawable/ic_infuse_sort"
+            app:tint="#8E8E93" />
+
+        <ImageView
+            android:id="@+id/btn_infuse_refresh"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="24dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:src="@drawable/ic_infuse_refresh"
+            app:tint="#8E8E93" />
+
+        <ImageView
+            android:id="@+id/btn_infuse_settings"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="16dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:src="@drawable/ic_infuse_settings"
+            app:tint="#8E8E93" />
+    </LinearLayout>
+    <!-- END PULCIX CUSTOM THEME -->
 
 </merge>

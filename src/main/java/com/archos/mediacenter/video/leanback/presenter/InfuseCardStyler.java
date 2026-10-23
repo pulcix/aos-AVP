@@ -78,7 +78,7 @@ public class InfuseCardStyler {
             }
             if (titleView instanceof android.widget.TextView tv) {
                 tv.setTextColor(0xFF999999); // Grigio #999999 per le cartelle/categorie
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16); // font size
             }
         }
 

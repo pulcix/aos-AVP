@@ -72,9 +72,10 @@ public class MainActivityLeanback extends LeanbackActivity {
         // BEGIN PULCIX CUSTOM THEME - Hot-Reload when returning from Settings
         String latestTheme = ThemeManager.getInstance(this).getCurrentTheme();
         if (mCurrentTheme != null && !mCurrentTheme.equals(latestTheme)) {
-            if (log.isDebugEnabled()) log.debug("onResumeFragments: theme changed from {} to {}, recreating activity", mCurrentTheme, latestTheme);
+            if (log.isDebugEnabled()) log.debug("onResumeFragments: theme changed from {} to {}, restarting activity", mCurrentTheme, latestTheme);
             mCurrentTheme = latestTheme;
-            recreate();
+            finish();
+            startActivity(new Intent(this, EntryActivity.class));
             return;
         }
         // END PULCIX CUSTOM THEME
@@ -228,8 +229,9 @@ public class MainActivityLeanback extends LeanbackActivity {
                 finish();
                 startActivity(new Intent(this, EntryActivity.class));
             } else if (resultCode == VideoPreferencesCommon.ACTIVITY_RESULT_THEME_CHANGED) {
-                // Theme changed - recreate activity to apply changes to fragments and presenters
-                recreate();
+                // Theme changed - full restart to apply changes to fragments and presenters
+                finish();
+                startActivity(new Intent(this, EntryActivity.class));
             }
         }
     }
