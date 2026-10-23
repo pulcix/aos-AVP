@@ -2,23 +2,9 @@
 <!--
      Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
 -->
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <dimen name="infuse_card_corner_radius">10dp</dimen>
     <dimen name="infuse_card_border_width">3dp</dimen>
     <dimen name="infuse_row_item_spacing">28dp</dimen>
     <dimen name="infuse_row_edge_spacing">48dp</dimen>
-
-    <!-- Google Leanback & Nova Grids / Secondary Screens Spacing Overrides -->
-    <dimen name="lb_browse_item_margin">@dimen/infuse_row_item_spacing</dimen>
-    <dimen name="lb_browse_padding_start" tools:override="true">@dimen/infuse_row_edge_spacing</dimen>
-
-    <!-- Nova Custom Grid Spacing Overrides -->
-    <dimen name="content_grid_vertical_spacing_between_items">26dp</dimen>
-
-    <!-- Override Box Dimensions to match LANDSCAPE poster ratio! -->
-    <dimen name="box_width" tools:override="true">200dp</dimen>
-    <dimen name="box_height" tools:override="true">130dp</dimen>
-    <dimen name="all_movies_icon_width" tools:override="true">@dimen/box_width</dimen>
-    <dimen name="all_tvshows_icon_width" tools:override="true">@dimen/box_width</dimen>
-    <dimen name="all_collections_icon_width" tools:override="true">@dimen/box_width</dimen>
 </resources>

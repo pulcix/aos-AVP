@@ -235,8 +235,9 @@ public class SeasonPresenter extends Presenter {
             if (mWatchedFlag) {
                 Drawable layer[] = new Drawable[2];
                 layer[0] = posterDrawable;
-                BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, R.drawable.watched_icon_corner);
-                icon.setGravity(Gravity.TOP | Gravity.RIGHT);
+                boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
+                BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, isInfuse ? R.drawable.infuse_watched_icon_corner : R.drawable.watched_icon_corner);
+                icon.setGravity(isInfuse ? (Gravity.TOP | Gravity.RIGHT) : (Gravity.TOP | Gravity.END));
                 layer[1] = icon;
                 finalDrawable = new LayerDrawable(layer);
             } else {

@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 
 import com.archos.filecorelibrary.MetaFile2;
 import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoUtils;
 
 import java.util.ArrayList;
@@ -78,8 +79,9 @@ public class PresenterUtils {
         Drawable posterDrawable = new BitmapDrawable(context.getResources(), bitmap);
         ArrayList<Drawable> layer = new ArrayList<>();
         layer.add(posterDrawable);
-        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.watched_icon_corner);
-        icon.setGravity(Gravity.TOP | Gravity.RIGHT);
+        boolean isInfuse = ThemeManager.getInstance(context).isInfuseTheme();
+        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(context, isInfuse ? R.drawable.infuse_watched_icon_corner : R.drawable.watched_icon_corner);
+        icon.setGravity(isInfuse ? (Gravity.TOP | Gravity.RIGHT) : (Gravity.TOP | Gravity.END));
         layer.add(icon);
         return drawableToBitmap(new LayerDrawable(layer.toArray(new Drawable[layer.size()])));
     }

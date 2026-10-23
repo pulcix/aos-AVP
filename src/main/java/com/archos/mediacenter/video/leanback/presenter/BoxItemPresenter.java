@@ -119,6 +119,15 @@ public class BoxItemPresenter extends Presenter {
             vh.getImageView().setScaleType(ImageView.ScaleType.FIT_XY); // Expand to fill 16:9 box correctly!
             vh.mImageViewContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             vh.mImageViewContainer.setBackground(null);
+            
+            // Applica l'aspect ratio 200x130dp programmato
+            ViewGroup.LayoutParams lp = vh.mRoot.getLayoutParams();
+            if (lp != null) {
+                float density = vh.mRoot.getResources().getDisplayMetrics().density;
+                lp.width = (int) (200 * density);
+                lp.height = (int) (130 * density);
+                vh.mRoot.setLayoutParams(lp);
+            }
         } else {
             vh.mImageViewContainer.setBackgroundColor(ThemeManager.getInstance(vh.mCard.getContext()).getLeanbackHeaderColor());
             if (box.getBitmap() != null) {
@@ -126,6 +135,13 @@ public class BoxItemPresenter extends Presenter {
             } else {
                 vh.getImageView().setImageResource(box.getIconResId());
                 vh.getImageView().setScaleType(ImageView.ScaleType.CENTER);
+            }
+            // Ripristina dimensioni originali per tema classico (preso da R.dimen.box_width e box_height)
+            ViewGroup.LayoutParams lp = vh.mRoot.getLayoutParams();
+            if (lp != null) {
+                lp.width = vh.mRoot.getResources().getDimensionPixelSize(R.dimen.box_width);
+                lp.height = vh.mRoot.getResources().getDimensionPixelSize(R.dimen.box_height);
+                vh.mRoot.setLayoutParams(lp);
             }
         }
 

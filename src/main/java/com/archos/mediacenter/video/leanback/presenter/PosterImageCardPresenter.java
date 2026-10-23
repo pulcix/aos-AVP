@@ -107,12 +107,19 @@ public class PosterImageCardPresenter extends Presenter {
             mProgressBar.getLayoutParams().width = 0;
             
             // BEGIN PULCIX CUSTOM THEME
-            // Aggiungiamo la progress bar direttamente nel mainRoot (FrameLayout) di CustomImageCardview
-            // così sta SOPRA il poster e viene tagliata assieme ad esso.
-            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = android.view.Gravity.BOTTOM;
-            progressGroup.setLayoutParams(lp);
-            mCardView.addViewToRoot(progressGroup);
+            boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
+            if (isInfuse) {
+                // Aggiungiamo la progress bar direttamente nel mainRoot (FrameLayout) di CustomImageCardview
+                // così sta SOPRA il poster e viene tagliata assieme ad esso.
+                android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.gravity = android.view.Gravity.BOTTOM;
+                progressGroup.setLayoutParams(lp);
+                mCardView.addViewToRoot(progressGroup);
+            } else {
+                BaseCardView.LayoutParams lp = new BaseCardView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.viewType = BaseCardView.LayoutParams.VIEW_TYPE_INFO;
+                mCardView.addView(progressGroup, mCardView.getChildCount(), lp);
+            }
             // END PULCIX CUSTOM THEME
 
             mImageCardViewTarget = new PicassoImageCardViewTarget(mCardView);
@@ -257,23 +264,26 @@ public class PosterImageCardPresenter extends Presenter {
                 durationMs + ", progess " + progress + "%");
 
         // BEGIN PULCIX CUSTOM THEME
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
-        
-        // Sottotitolo: Mostra l'anno di uscita in grigio chiaro per i film
-        if (video instanceof com.archos.mediacenter.video.browser.adapters.object.Movie) {
-            int year = ((com.archos.mediacenter.video.browser.adapters.object.Movie) video).getYear();
-            if (year > 0) {
-                vh.mCardView.setContentText(String.valueOf(year));
-            } else {
+        boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
+        if (isInfuse) {
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+            
+            // Sottotitolo: Mostra l'anno di uscita in grigio chiaro per i film
+            if (video instanceof com.archos.mediacenter.video.browser.adapters.object.Movie) {
+                int year = ((com.archos.mediacenter.video.browser.adapters.object.Movie) video).getYear();
+                if (year > 0) {
+                    vh.mCardView.setContentText(String.valueOf(year));
+                } else {
+                    vh.mCardView.setContentText("");
+                }
+            } else if (!(video instanceof com.archos.mediacenter.video.browser.adapters.object.Episode)) {
+                // Pulizia preventiva per tipi non noti
                 vh.mCardView.setContentText("");
             }
-        } else if (!(video instanceof com.archos.mediacenter.video.browser.adapters.object.Episode)) {
-            // Pulizia preventiva per tipi non noti
-            vh.mCardView.setContentText("");
+            
+            // Riapplica lo styling dopo aver forzato un nuovo content text!
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
         }
-        
-        // Riapplica lo styling dopo aver forzato un nuovo content text!
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
         // END PULCIX CUSTOM THEME
 
         // setup the trakt flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
@@ -291,8 +301,12 @@ public class PosterImageCardPresenter extends Presenter {
                 case FOR_GENERAL_LIST:
                     card.setTitleText(episode.getShowName());
                     // BEGIN PULCIX CUSTOM THEME
-                    // Formato S{season} • E{episode} in stile Infuse, rimosso il titolo dell'episodio nel sottotitolo
-                    card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    if (isInfuse) {
+                        // Formato S{season} • E{episode} in stile Infuse, rimosso il titolo dell'episodio nel sottotitolo
+                        card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    } else {
+                        card.setContentText(r.getString(R.string.leanback_episode_details_for_general_list, episode.getSeasonNumber(), episode.getEpisodeNumber(), episodeName));
+                    }
                     // END PULCIX CUSTOM THEME
                     break;
                 case FOR_SEASON_LIST:
@@ -302,7 +316,11 @@ public class PosterImageCardPresenter extends Presenter {
                     }
                     card.setTitleText(r.getString(R.string.leanback_episode_name_for_season_list, episode.getEpisodeNumber(), episodeName));
                     // BEGIN PULCIX CUSTOM THEME
-                    card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    if (isInfuse) {
+                        card.setContentText(String.format(java.util.Locale.US, "S%d • E%d", episode.getSeasonNumber(), episode.getEpisodeNumber()));
+                    } else {
+                        card.setContentText("");
+                    }
                     // END PULCIX CUSTOM THEME
                     break;
             }
@@ -311,6 +329,9 @@ public class PosterImageCardPresenter extends Presenter {
             if (video instanceof Movie) {
                 // Special Movie binding
                 card.setTitleText(video.getName());
+                if (!isInfuse) {
+                    card.setContentText("");
+                }
                 if (mLongClickListener != null) {
                     vh.view.setOnLongClickListener(mLongClickListener);
                     vh.mImageCardViewTarget.setPinnedFlag(((Movie)video).isPinned());
@@ -318,13 +339,17 @@ public class PosterImageCardPresenter extends Presenter {
             } else {
                 // Non indexed case
                 card.setTitleText(video.getFilenameNonCryptic());
-                card.setContentText("");
+                if (!isInfuse) {
+                    card.setContentText("");
+                }
             }
         }
 
         // BEGIN PULCIX CUSTOM THEME
         // Forza l'aggiornamento visivo di stile su contentText (grigio chiaro, 12sp)
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        if (isInfuse) {
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        }
         // END PULCIX CUSTOM THEME
 
          if (posterUri!=null) {
@@ -358,7 +383,9 @@ public class PosterImageCardPresenter extends Presenter {
         final ImageCardView card = vh.getImageCardView();
 
         // BEGIN PULCIX CUSTOM THEME
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        }
         // END PULCIX CUSTOM THEME
 
         // setup the watched flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
@@ -391,7 +418,9 @@ public class PosterImageCardPresenter extends Presenter {
         final ImageCardView card = vh.getImageCardView();
 
         // BEGIN PULCIX CUSTOM THEME
-        InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            InfuseCardStyler.applyInfuseCardStyle(vh.mCardView);
+        }
         // END PULCIX CUSTOM THEME
 
         // setup the watched flag BEFORE the poster because it is handled in a strange way in the ImageCardViewTarget
@@ -470,13 +499,13 @@ public class PosterImageCardPresenter extends Presenter {
                 ArrayList<Drawable> layer = new ArrayList<>();
                 layer.add(posterDrawable);
                 if (mWatchedFlag) {
-                    BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, R.drawable.watched_icon_corner);
-                    icon.setGravity(Gravity.TOP | Gravity.RIGHT);
+                    BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, ThemeManager.getInstance(mContext).isInfuseTheme() ? R.drawable.infuse_watched_icon_corner : R.drawable.watched_icon_corner);
+                    icon.setGravity(ThemeManager.getInstance(mContext).isInfuseTheme() ? (Gravity.TOP | Gravity.RIGHT) : (Gravity.TOP | Gravity.END));
                     layer.add(icon);
                 }
                 if (mPinnedFlag) {
-                    BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, R.drawable.pinned_icon_corner);
-                    icon.setGravity(Gravity.TOP | Gravity.LEFT);
+                    BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(mContext, ThemeManager.getInstance(mContext).isInfuseTheme() ? R.drawable.infuse_pinned_icon_corner : R.drawable.pinned_icon_corner);
+                    icon.setGravity(ThemeManager.getInstance(mContext).isInfuseTheme() ? (Gravity.TOP | Gravity.LEFT) : (Gravity.TOP | Gravity.START));
                     layer.add(icon);
                 }
                 finalDrawable = new LayerDrawable(layer.toArray(new Drawable[layer.size()]));

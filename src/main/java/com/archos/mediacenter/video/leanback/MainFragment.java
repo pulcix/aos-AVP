@@ -778,7 +778,7 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
         if (showByRating)
             mMoviesRowsAdapter.add(new Box(Box.ID.MOVIES_BY_RATING, getString(R.string.movies_by_rating), R.drawable.ratings_banner));
         mMoviesRowsAdapter.add(new Box(Box.ID.MOVIES_BY_YEAR, getString(R.string.movies_by_year), R.drawable.years_banner_2026));
-        mMovieRow = new ListRow(ROW_ID_MOVIES, new HeaderItem(getString(R.string.movies)), mMoviesRowsAdapter);
+        mMovieRow = new ListRow(ROW_ID_MOVIES, new HeaderItem(isInfuse ? "Movies" : getString(R.string.movies)), mMoviesRowsAdapter);
         buildAllCollectionsBox(wasInPause);
         mMoviesRowsAdapter.add(mAllCollectionsBox);
 
@@ -790,10 +790,10 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
         if (showByRating)
             mTvshowRowAdapter.add(new Box(Box.ID.TVSHOWS_BY_RATING, getString(R.string.tvshows_by_rating), R.drawable.ratings_banner));
         mTvshowRowAdapter.add(new Box(Box.ID.EPISODES_BY_DATE, getString(R.string.episodes_by_date), R.drawable.years_banner_2026));
-        mTvshowRow = new ListRow(ROW_ID_TVSHOW, new HeaderItem(getString(R.string.all_tv_shows)), mTvshowRowAdapter);
+        mTvshowRow = new ListRow(ROW_ID_TVSHOW, new HeaderItem(isInfuse ? "TV Shows" : getString(R.string.all_tv_shows)), mTvshowRowAdapter);
 
         mAnimeRowAdapter = new ArrayObjectAdapter(new BoxItemPresenter());
-        mAnimeRow = new ListRow(ROW_ID_ANIMES, new HeaderItem(getString(R.string.animes)), mAnimeRowAdapter);
+        mAnimeRow = new ListRow(ROW_ID_ANIMES, new HeaderItem(isInfuse ? "Animations" : getString(R.string.animes)), mAnimeRowAdapter);
         buildAllAnimesBox(wasInPause);
         mAnimeRowAdapter.add(mAllAnimesBox);
         mAnimeRowAdapter.add(new Box(Box.ID.ANIMES_BY_GENRE, getString(R.string.animes_by_genre), R.drawable.genres_banner));
@@ -812,17 +812,17 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
         // this is for the all movies row not the movie row
         mMoviesAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mMoviesAdapter.setMapper(new CompatibleCursorMapperConverter(new VideoCursorMapper()));
-        mMoviesRow = new ListRow(ROW_ID_ALL_MOVIES, new HeaderItem(getString(R.string.all_movies)), mMoviesAdapter);
+        mMoviesRow = new ListRow(ROW_ID_ALL_MOVIES, new HeaderItem(isInfuse ? "Movies" : getString(R.string.all_movies)), mMoviesAdapter);
 
         // this is for the all tv shows row not the tv show row
         mTvshowsAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mTvshowsAdapter.setMapper(new CompatibleCursorMapperConverter(new TvshowCursorMapper()));
-        mTvshowsRow = new ListRow(ROW_ID_ALL_TVSHOWS, new HeaderItem(getString(R.string.all_tvshows)), mTvshowsAdapter);
+        mTvshowsRow = new ListRow(ROW_ID_ALL_TVSHOWS, new HeaderItem(isInfuse ? "TV Shows" : getString(R.string.all_tvshows)), mTvshowsAdapter);
 
         // this is for the all animes row not the animation row
         mAnimesAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mAnimesAdapter.setMapper(new CompatibleCursorMapperConverter(new AnimesNShowsMapper()));
-        mAnimesRow = new ListRow(ROW_ID_ALL_ANIMES, new HeaderItem(getString(R.string.all_animes_row)), mAnimesAdapter);
+        mAnimesRow = new ListRow(ROW_ID_ALL_ANIMES, new HeaderItem(isInfuse ? "Animations" : getString(R.string.all_animes_row)), mAnimesAdapter);
 
         mFileBrowsingRowAdapter = new ArrayObjectAdapter(new BoxItemPresenter());
         mFileBrowsingRowAdapter.add(new Box(Box.ID.NETWORK, getString(R.string.network_storage), R.drawable.filetype_new_server));

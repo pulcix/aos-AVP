@@ -14,7 +14,4 @@
         <item>black</item>
         <item>infuse</item>
     </string-array>
-
-    <!-- Capitalize "TV Shows" to match Infuse style -->
-    <string name="all_tv_shows" tools:override="true">TV Shows</string>
 </resources>
