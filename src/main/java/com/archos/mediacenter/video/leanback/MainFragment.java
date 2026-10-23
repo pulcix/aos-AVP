@@ -523,6 +523,7 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
             LoaderUtils.mSmartRecentlyRows = newSmartRecentlyRows;
 
             // Recreate rows with new titles
+            boolean isInfuse = ThemeManager.getInstance(mActivity).isInfuseTheme();
             String lastAddedTitle = LoaderUtils.isSmartRecentlyRows() ? getString(R.string.new_and_unwatched) : getString(R.string.recently_added);
             String lastPlayedTitle = LoaderUtils.isSmartRecentlyRows() ? getString(R.string.keep_watching) : getString(R.string.recently_played);
 
@@ -532,7 +533,7 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
                 if (lastAddedPosition != -1) {
                     mRowsAdapter.removeItems(lastAddedPosition, 1);
                 }
-                mLastAddedRow = new ListRow(ROW_ID_LAST_ADDED, new HeaderItem(lastAddedTitle), mLastAddedAdapter);
+                mLastAddedRow = new ListRow(ROW_ID_LAST_ADDED, new HeaderItem(isInfuse ? "Recently added" : lastAddedTitle), mLastAddedAdapter);
                 if (lastAddedPosition != -1) {
                     mRowsAdapter.add(lastAddedPosition, mLastAddedRow);
                 }
@@ -545,7 +546,7 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
                 if (lastPlayedPosition != -1) {
                     mRowsAdapter.removeItems(lastPlayedPosition, 1);
                 }
-                mLastPlayedRow = new ListRow(ROW_ID_LAST_PLAYED, new HeaderItem(lastPlayedTitle), mLastPlayedAdapter);
+                mLastPlayedRow = new ListRow(ROW_ID_LAST_PLAYED, new HeaderItem(isInfuse ? "Recently played" : lastPlayedTitle), mLastPlayedAdapter);
                 if (lastPlayedPosition != -1) {
                     mRowsAdapter.add(lastPlayedPosition, mLastPlayedRow);
                 }
@@ -756,17 +757,17 @@ public class MainFragment extends BrowseSupportFragment implements LoaderManager
 
         mWatchingUpNextAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mWatchingUpNextAdapter.setMapper(new CompatibleCursorMapperConverter(new VideoCursorMapper()));
-        mWatchingUpNextRow = new ListRow(ROW_ID_WATCHING_UP_NEXT, new HeaderItem(getString(R.string.watching_up_next)), mWatchingUpNextAdapter);
+        mWatchingUpNextRow = new ListRow(ROW_ID_WATCHING_UP_NEXT, new HeaderItem(isInfuse ? "Up Next" : getString(R.string.watching_up_next)), mWatchingUpNextAdapter);
 
         mLastAddedAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mLastAddedAdapter.setMapper(new CompatibleCursorMapperConverter(new VideoCursorMapper()));
         String lastAddedTitle = LoaderUtils.isSmartRecentlyRows() ? getString(R.string.new_and_unwatched) : getString(R.string.recently_added);
-        mLastAddedRow = new ListRow(ROW_ID_LAST_ADDED, new HeaderItem(lastAddedTitle), mLastAddedAdapter);
+        mLastAddedRow = new ListRow(ROW_ID_LAST_ADDED, new HeaderItem(isInfuse ? "Recently added" : lastAddedTitle), mLastAddedAdapter);
 
         mLastPlayedAdapter = new CursorObjectAdapter(new PosterImageCardPresenter(mActivity));
         mLastPlayedAdapter.setMapper(new CompatibleCursorMapperConverter(new VideoCursorMapper()));
         String lastPlayedTitle = LoaderUtils.isSmartRecentlyRows() ? getString(R.string.keep_watching) : getString(R.string.recently_played);
-        mLastPlayedRow = new ListRow(ROW_ID_LAST_PLAYED, new HeaderItem(lastPlayedTitle), mLastPlayedAdapter);
+        mLastPlayedRow = new ListRow(ROW_ID_LAST_PLAYED, new HeaderItem(isInfuse ? "Recently played" : lastPlayedTitle), mLastPlayedAdapter);
 
         boolean showByRating = mPrefs.getBoolean(VideoPreferencesCommon.KEY_SHOW_BY_RATING, VideoPreferencesCommon.SHOW_BY_RATING_DEFAULT);
 
