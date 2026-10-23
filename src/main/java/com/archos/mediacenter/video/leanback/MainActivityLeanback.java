@@ -57,6 +57,7 @@ public class MainActivityLeanback extends LeanbackActivity {
     private String mCurrentUiModeLeanback;
     private PermissionChecker mPermissionChecker;
     private SharedPreferences.OnSharedPreferenceChangeListener mThemeChangeListener;
+    private String mCurrentTheme;
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -67,6 +68,17 @@ public class MainActivityLeanback extends LeanbackActivity {
     public void onResumeFragments(){
         if (log.isDebugEnabled()) log.debug("onResumeFragments");
         super.onResumeFragments();
+
+        // BEGIN PULCIX CUSTOM THEME - Hot-Reload when returning from Settings
+        String latestTheme = ThemeManager.getInstance(this).getCurrentTheme();
+        if (mCurrentTheme != null && !mCurrentTheme.equals(latestTheme)) {
+            if (log.isDebugEnabled()) log.debug("onResumeFragments: theme changed from {} to {}, recreating activity", mCurrentTheme, latestTheme);
+            mCurrentTheme = latestTheme;
+            recreate();
+            return;
+        }
+        // END PULCIX CUSTOM THEME
+
         CustomApplication.loadLocale(getResources());
 
         new DensityTweak(this)
@@ -80,6 +92,7 @@ public class MainActivityLeanback extends LeanbackActivity {
         
         // Apply correct theme before super.onCreate() to avoid visual flash
         ThemeManager themeManager = ThemeManager.getInstance(this);
+        mCurrentTheme = themeManager.getCurrentTheme();
         // BEGIN PULCIX CUSTOM THEME
         if (themeManager.isInfuseTheme()) {
             setTheme(R.style.MyLeanbackTheme_Infuse);

@@ -109,15 +109,22 @@ public class PosterImageCardPresenter extends Presenter {
             // BEGIN PULCIX CUSTOM THEME
             boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
             if (isInfuse) {
-                // Aggiungiamo la progress bar direttamente nel mainRoot (FrameLayout) di CustomImageCardview
-                // così sta SOPRA il poster e viene tagliata assieme ad esso.
+                progressGroup.setBackgroundResource(R.drawable.bg_infuse_resume_track);
+                mProgressBar.setBackgroundResource(R.drawable.bg_infuse_resume_bar);
                 android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 lp.gravity = android.view.Gravity.BOTTOM;
+                float density = mContext.getResources().getDisplayMetrics().density;
+                lp.leftMargin = (int) (8 * density);
+                lp.rightMargin = (int) (8 * density);
+                lp.bottomMargin = (int) (8 * density);
                 progressGroup.setLayoutParams(lp);
                 mCardView.addViewToRoot(progressGroup);
             } else {
+                progressGroup.setBackgroundColor(0x66000000);
+                mProgressBar.setBackgroundColor(ThemeManager.getInstance(mContext).getAccentColor());
                 BaseCardView.LayoutParams lp = new BaseCardView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 lp.viewType = BaseCardView.LayoutParams.VIEW_TYPE_INFO;
+                progressGroup.setLayoutParams(lp);
                 mCardView.addView(progressGroup, mCardView.getChildCount(), lp);
             }
             // END PULCIX CUSTOM THEME
