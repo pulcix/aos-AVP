@@ -46,7 +46,7 @@ public class InfuseCardStyler {
             // Personalizzazione del Titolo della Card (Film / Serie TV)
             View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
             if (titleText instanceof android.widget.TextView tv) {
-                tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo
+                tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo film/serie
                 tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
             }
 
@@ -65,19 +65,21 @@ public class InfuseCardStyler {
             }
         }
         
-        // RIMOZIONE FASCIA GRIGIA PER BOX ITEM PRESENTER ("Movies by Genre", etc) E TEXTVIEWS
+        // RIMOZIONE FASCIA GRIGIA E STILE PER BOX ITEM PRESENTER ("Movies by Genre", etc)
         View titleView = cardView.findViewById(R.id.name);
         if (titleView == null) {
             titleView = cardView.findViewById(R.id.title);
         }
-        if (titleView != null && titleView.getParent() instanceof ViewGroup) {
-            ViewGroup titleParent = (ViewGroup) titleView.getParent();
-            titleParent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            titleParent.setBackground(null);
-        }
-        if (titleView instanceof android.widget.TextView tv) {
-            tv.setTextColor(0xFFFFFFFF); // Bianco puro per le categorie
-            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
+        if (titleView != null) {
+            if (titleView.getParent() instanceof ViewGroup) {
+                ViewGroup titleParent = (ViewGroup) titleView.getParent();
+                titleParent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                titleParent.setBackground(null);
+            }
+            if (titleView instanceof android.widget.TextView tv) {
+                tv.setTextColor(0xFF999999); // Grigio #999999 per le cartelle/categorie
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
+            }
         }
 
         // ARROTONDAMENTO (14dp) SULLA TARGET VIEW
