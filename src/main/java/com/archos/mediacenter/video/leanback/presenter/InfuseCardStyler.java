@@ -43,6 +43,13 @@ public class InfuseCardStyler {
             infoField.setMinimumHeight(0);
             infoField.setPadding(infoField.getPaddingLeft(), (int)(6 * cardView.getResources().getDisplayMetrics().density), infoField.getPaddingRight(), (int)(2 * cardView.getResources().getDisplayMetrics().density));
             
+            // Personalizzazione del Titolo della Card (Film / Serie TV)
+            View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
+            if (titleText instanceof android.widget.TextView tv) {
+                tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
+            }
+
             // Rimuoviamo l'ingombro vuoto in altezza del content_text secondario se vuoto
             View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
             if (contentText instanceof android.widget.TextView tv) {
@@ -67,6 +74,10 @@ public class InfuseCardStyler {
             ViewGroup titleParent = (ViewGroup) titleView.getParent();
             titleParent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             titleParent.setBackground(null);
+        }
+        if (titleView instanceof android.widget.TextView tv) {
+            tv.setTextColor(0xFFFFFFFF); // Bianco puro per le categorie
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
         }
 
         // ARROTONDAMENTO (14dp) SULLA TARGET VIEW
