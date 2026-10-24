@@ -21,8 +21,10 @@ import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.SearchOrbView;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -85,6 +87,7 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
         }
         @Override
         public void updateComponentsVisibility(int flags) {
+            hideNativeOrbs();
         }
     };
 
@@ -171,48 +174,76 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
         mBtnInfuseSettings = rootView.findViewById(R.id.btn_infuse_settings);
 
         if (ThemeManager.getInstance(context).isInfuseTheme()) {
-            mBadgeView.setVisibility(View.GONE);
-            mTextView.setVisibility(View.GONE);
-            mSearchOrbView.setVisibility(View.GONE);
+            hideNativeOrbs();
             
             if (mInfuseSearchContainer != null) {
                 mInfuseSearchContainer.setVisibility(View.VISIBLE);
+                mInfuseSearchContainer.setFocusable(true);
+                mInfuseSearchContainer.setFocusableInTouchMode(false);
                 mInfuseSearchContainer.setOnFocusChangeListener(mInfuseFocusListener);
+                mInfuseSearchContainer.setOnKeyListener(mInfuseDpadKeyListener);
                 mInfuseSearchContainer.setOnClickListener(v -> {
                     if (mSearchClickListener != null) {
                         mSearchClickListener.onClick(v);
-                    } else {
+                    } else if (mSearchOrbView != null) {
                         mSearchOrbView.performClick();
                     }
                 });
             }
             if (mInfuseActionsContainer != null) {
                 mInfuseActionsContainer.setVisibility(View.VISIBLE);
-                mBtnInfuseSort.setOnFocusChangeListener(mInfuseFocusListener);
-                mBtnInfuseRefresh.setOnFocusChangeListener(mInfuseFocusListener);
-                mBtnInfuseSettings.setOnFocusChangeListener(mInfuseFocusListener);
 
-                mBtnInfuseSettings.setOnClickListener(v -> {
-                    if (context instanceof Activity) {
-                        Activity activity = (Activity) context;
-                        activity.startActivityForResult(new Intent(activity, VideoSettingsActivity.class), MainActivityLeanback.ACTIVITY_REQUEST_CODE_PREFERENCES);
+                ImageView[] btns = new ImageView[] { mBtnInfuseSort, mBtnInfuseRefresh, mBtnInfuseSettings };
+                for (ImageView btn : btns) {
+                    if (btn != null) {
+                        btn.setFocusable(true);
+                        btn.setFocusableInTouchMode(false);
+                        btn.setOnFocusChangeListener(mInfuseFocusListener);
+                        btn.setOnKeyListener(mInfuseDpadKeyListener);
                     }
-                });
+                }
 
-                mBtnInfuseRefresh.setOnClickListener(v -> {
-                    if (context instanceof Activity) {
-                        NetworkAutoRefresh.forceRescan((Activity) context);
-                        Toast.makeText(context, R.string.rescrap_movies_in_progress, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                // Explicit Focus Navigation IDs
+                if (mInfuseSearchContainer != null && mBtnInfuseSort != null) {
+                    mInfuseSearchContainer.setNextFocusRightId(mBtnInfuseSort.getId());
+                    mBtnInfuseSort.setNextFocusLeftId(mInfuseSearchContainer.getId());
+                }
+                if (mBtnInfuseSort != null && mBtnInfuseRefresh != null) {
+                    mBtnInfuseSort.setNextFocusRightId(mBtnInfuseRefresh.getId());
+                    mBtnInfuseRefresh.setNextFocusLeftId(mBtnInfuseSort.getId());
+                }
+                if (mBtnInfuseRefresh != null && mBtnInfuseSettings != null) {
+                    mBtnInfuseRefresh.setNextFocusRightId(mBtnInfuseSettings.getId());
+                    mBtnInfuseSettings.setNextFocusLeftId(mBtnInfuseRefresh.getId());
+                }
 
-                mBtnInfuseSort.setOnClickListener(v -> {
-                    if (mInfuseSortClickListener != null) {
-                        mInfuseSortClickListener.onClick(v);
-                    } else if (context instanceof MainActivityLeanback) {
-                        context.startActivity(new Intent(context, com.archos.mediacenter.video.leanback.movies.AllMoviesGridActivity.class));
-                    }
-                });
+                if (mBtnInfuseSettings != null) {
+                    mBtnInfuseSettings.setOnClickListener(v -> {
+                        if (context instanceof Activity) {
+                            Activity activity = (Activity) context;
+                            activity.startActivityForResult(new Intent(activity, VideoSettingsActivity.class), MainActivityLeanback.ACTIVITY_REQUEST_CODE_PREFERENCES);
+                        }
+                    });
+                }
+
+                if (mBtnInfuseRefresh != null) {
+                    mBtnInfuseRefresh.setOnClickListener(v -> {
+                        if (context instanceof Activity) {
+                            NetworkAutoRefresh.forceRescan((Activity) context);
+                            Toast.makeText(context, R.string.rescrap_movies_in_progress, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
+                if (mBtnInfuseSort != null) {
+                    mBtnInfuseSort.setOnClickListener(v -> {
+                        if (mInfuseSortClickListener != null) {
+                            mInfuseSortClickListener.onClick(v);
+                        } else if (context instanceof MainActivityLeanback) {
+                            context.startActivity(new Intent(context, com.archos.mediacenter.video.leanback.movies.AllMoviesGridActivity.class));
+                        }
+                    });
+                }
             }
         }
         // END PULCIX CUSTOM THEME
@@ -222,6 +253,53 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     }
 
     // BEGIN PULCIX CUSTOM THEME
+    private void hideNativeOrbs() {
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (mBadgeView != null) mBadgeView.setVisibility(View.GONE);
+            if (mTextView != null) mTextView.setVisibility(View.GONE);
+
+            SearchOrbView[] orbs = new SearchOrbView[] {
+                mSearchOrbView, mSearchOrbView2, mSearchOrbView3, mSearchOrbView4, mSearchOrbView5
+            };
+            for (SearchOrbView orb : orbs) {
+                if (orb != null) {
+                    orb.setVisibility(View.GONE);
+                    orb.setFocusable(false);
+                    orb.setFocusableInTouchMode(false);
+                }
+            }
+            if (mInfuseSearchContainer != null) {
+                mInfuseSearchContainer.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private final OnKeyListener mInfuseDpadKeyListener = new OnKeyListener() {
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    if (v == mInfuseSearchContainer && mBtnInfuseSort != null) {
+                        return mBtnInfuseSort.requestFocus();
+                    } else if (v == mBtnInfuseSort && mBtnInfuseRefresh != null) {
+                        return mBtnInfuseRefresh.requestFocus();
+                    } else if (v == mBtnInfuseRefresh && mBtnInfuseSettings != null) {
+                        return mBtnInfuseSettings.requestFocus();
+                    }
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                    if (v == mBtnInfuseSettings && mBtnInfuseRefresh != null) {
+                        return mBtnInfuseRefresh.requestFocus();
+                    } else if (v == mBtnInfuseRefresh && mBtnInfuseSort != null) {
+                        return mBtnInfuseSort.requestFocus();
+                    } else if (v == mBtnInfuseSort && mInfuseSearchContainer != null) {
+                        return mInfuseSearchContainer.requestFocus();
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
     private final OnFocusChangeListener mInfuseFocusListener = new OnFocusChangeListener() {
         @Override
         public void onFocusChange(View view, boolean focus) {
@@ -290,9 +368,7 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
      */
     public void setTitle(String titleText) {
         mTextView.setText(titleText);
-        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
-            mTextView.setVisibility(View.GONE);
-        }
+        hideNativeOrbs();
     }
 
     /**
@@ -309,8 +385,7 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     public void setBadgeDrawable(Drawable drawable) {
         mBadgeView.setImageDrawable(drawable);
         if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
-            mBadgeView.setVisibility(View.GONE);
-            mTextView.setVisibility(View.GONE);
+            hideNativeOrbs();
             return;
         }
         if (drawable != null) {
@@ -335,31 +410,47 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     public void setOnSearchClickedListener(View.OnClickListener listener) {
         mSearchClickListener = listener;
         mSearchOrbView.setOnOrbClickedListener(listener);
+        hideNativeOrbs();
     }
 
     public void setOnOrb1ClickedListener(View.OnClickListener listener) {
         mSearchClickListener = listener;
         mSearchOrbView.setOnOrbClickedListener(listener);
-        mSearchOrbView.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        if (!ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mSearchOrbView.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+        hideNativeOrbs();
     }
     public void setOnOrb2ClickedListener(View.OnClickListener listener) {
         mSearchOrbView2.setOnOrbClickedListener(listener);
-        mSearchOrbView2.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        if (!ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mSearchOrbView2.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+        hideNativeOrbs();
     }
 
     public void setOnOrb3ClickedListener(View.OnClickListener listener) {
         mSearchOrbView3.setOnOrbClickedListener(listener);
-        mSearchOrbView3.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        if (!ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mSearchOrbView3.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+        hideNativeOrbs();
     }
 
     public void setOnOrb4ClickedListener(View.OnClickListener listener) {
         mSearchOrbView4.setOnOrbClickedListener(listener);
-        mSearchOrbView4.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        if (!ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mSearchOrbView4.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+        hideNativeOrbs();
     }
 
     public void setOnOrb5ClickedListener(View.OnClickListener listener) {
         mSearchOrbView5.setOnOrbClickedListener(listener);
-        mSearchOrbView5.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        if (!ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            mSearchOrbView5.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+        hideNativeOrbs();
     }
 
     /**
@@ -441,6 +532,9 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
      *  Returns the view for the search affordance.
      */
     public View getSearchAffordanceView() {
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            return mInfuseSearchContainer != null ? mInfuseSearchContainer : mSearchOrbView;
+        }
         return mSearchOrbView;
     }
 
