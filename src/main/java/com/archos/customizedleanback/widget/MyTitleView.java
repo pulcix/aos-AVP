@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.SearchOrbView;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -174,6 +175,9 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
         mBtnInfuseSettings = rootView.findViewById(R.id.btn_infuse_settings);
 
         if (ThemeManager.getInstance(context).isInfuseTheme()) {
+            int pad48 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48, getResources().getDisplayMetrics());
+            setPadding(pad48, getPaddingTop(), pad48, getPaddingBottom());
+
             hideNativeOrbs();
             
             if (mInfuseSearchContainer != null) {
