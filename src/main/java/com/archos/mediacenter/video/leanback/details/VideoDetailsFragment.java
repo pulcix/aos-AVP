@@ -3084,9 +3084,10 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             photoIv.setImageDrawable(null); // Reset immagine per evitare riutilizzo sbagliato
             if (member.profileUrl != null && !member.profileUrl.isEmpty()) {
                 photoIv.setVisibility(android.view.View.VISIBLE);
+                float density = card.getContext().getResources().getDisplayMetrics().density;
                 com.squareup.picasso.Picasso.get()
                     .load(member.profileUrl)
-                    .fit()
+                    .resize((int) (130 * density), (int) (115 * density))
                     .centerCrop()
                     .into(photoIv, new com.squareup.picasso.Callback() {
                         @Override
