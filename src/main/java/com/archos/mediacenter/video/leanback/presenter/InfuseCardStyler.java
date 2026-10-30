@@ -39,15 +39,19 @@ public class InfuseCardStyler {
             infoField.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             infoField.setBackground(null);
             
-            // Riduciamo gli spazi vuoti tra la locandina e il titolo (Stile Infuse)
+            // Riduciamo gli spazi vuoti e padding laterali tra la locandina e il titolo (Stile Infuse)
             infoField.setMinimumHeight(0);
-            infoField.setPadding(infoField.getPaddingLeft(), (int)(6 * cardView.getResources().getDisplayMetrics().density), infoField.getPaddingRight(), (int)(2 * cardView.getResources().getDisplayMetrics().density));
+            float density = cardView.getResources().getDisplayMetrics().density;
+            int paddingHorizontalPx = (int) (0 * density); // <--- Imposta qui il padding Left/Right in dp solo per Infuse (es. 0dp)
+            infoField.setPadding(paddingHorizontalPx, (int)(6 * density), paddingHorizontalPx, (int)(2 * density));
             
             // Personalizzazione del Titolo della Card (Film / Serie TV)
             View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
             if (titleText instanceof android.widget.TextView tv) {
                 tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo film/serie
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14); // 14sp
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 17);
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
             }
 
             // Rimuoviamo l'ingombro vuoto in altezza del content_text secondario se vuoto
@@ -60,7 +64,9 @@ public class InfuseCardStyler {
                     tv.setVisibility(View.VISIBLE);
                     // Colore metadato grigio scuro (#777777) stile Infuse
                     tv.setTextColor(0xFF777777);
-                    tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12);
+                    tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+                    tv.setGravity(android.view.Gravity.CENTER);
+                    tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
                 }
             }
         }
@@ -79,6 +85,8 @@ public class InfuseCardStyler {
             if (titleView instanceof android.widget.TextView tv) {
                 tv.setTextColor(0xFF999999); // Grigio #999999 per le cartelle/categorie
                 tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16); // font size
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
             }
         }
 
@@ -92,6 +100,19 @@ public class InfuseCardStyler {
                 targetView = (View) ((com.archos.mediacenter.video.leanback.presenter.CustomImageCardview) cardView).getMainImageView().getParent();
             }
         }
+
+        // RIMOZIONE ELEVAZIONE ED EFFETTO DROP SHADOW
+        cardView.setStateListAnimator(null);
+        cardView.setElevation(0f);
+        cardView.setTranslationZ(0f);
+        androidx.core.view.ViewCompat.setElevation(cardView, 0f);
+        androidx.core.view.ViewCompat.setTranslationZ(cardView, 0f);
+
+        targetView.setStateListAnimator(null);
+        targetView.setElevation(0f);
+        targetView.setTranslationZ(0f);
+        androidx.core.view.ViewCompat.setElevation(targetView, 0f);
+        androidx.core.view.ViewCompat.setTranslationZ(targetView, 0f);
 
         targetView.setOutlineProvider(new android.view.ViewOutlineProvider() {
             @Override
@@ -107,15 +128,26 @@ public class InfuseCardStyler {
         // Imposta inizialmente il bordo inset (unfocused state)
         finalTargetView.setForeground(ContextCompat.getDrawable(cardView.getContext(), R.drawable.bg_card_stroke_inset));
 
-        // EFFETTO ZOOM FOCUS
+        // EFFETTO ZOOM FOCUS SENZA DROP SHADOW
         cardView.setOnFocusChangeListener((v, hasFocus) -> {
+            v.setStateListAnimator(null);
+            v.setElevation(0f);
+            v.setTranslationZ(0f);
+            androidx.core.view.ViewCompat.setElevation(v, 0f);
+            androidx.core.view.ViewCompat.setTranslationZ(v, 0f);
+
+            finalTargetView.setStateListAnimator(null);
+            finalTargetView.setElevation(0f);
+            finalTargetView.setTranslationZ(0f);
+            androidx.core.view.ViewCompat.setElevation(finalTargetView, 0f);
+            androidx.core.view.ViewCompat.setTranslationZ(finalTargetView, 0f);
+
             if (hasFocus) {
-                // Non applichiamo più il bordo Ambra, manteniamo solo il bordo inset trasparente antistacco
                 finalTargetView.setForeground(ContextCompat.getDrawable(v.getContext(), R.drawable.bg_card_stroke_inset));
                 v.animate()
                     .scaleX(1.15f)
                     .scaleY(1.15f)
-                    .translationZ(16f)
+                    .translationZ(0f)
                     .setDuration(200)
                     .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
                     .start();

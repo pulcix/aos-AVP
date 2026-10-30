@@ -18,6 +18,7 @@
     android:layout_height="wrap_content"
     android:paddingBottom="@dimen/lb_details_overview_margin_bottom"
     android:clipToPadding="false"
+    android:clipChildren="false"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:descendantFocusability="afterDescendants"
@@ -29,6 +30,7 @@
         android:layout_height="@dimen/lb_details_v2_card_height"
         android:layout_marginTop="@dimen/lb_details_v2_blank_height"
         android:clipToPadding="false"
+        android:clipChildren="false"
         android:background="?attr/defaultBrandColor"
         android:elevation="@dimen/lb_details_overview_z"
         >
@@ -36,6 +38,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         >
         <androidx.leanback.widget.NonOverlappingFrameLayout
             android:id="@+id/details_overview_description"
@@ -57,13 +61,49 @@
             android:id="@+id/details_overview_actions_background"
             android:background="?attr/defaultBrandColorDark"
             android:orientation="vertical"
-            android:layout_alignParentBottom="true" >
+            android:layout_alignParentBottom="true"
+            android:clipChildren="false"
+            android:clipToPadding="false" >
+
+            <!-- BEGIN PULCIX CUSTOM THEME: Infuse 2-row buttons -->
+            <LinearLayout
+                android:id="@+id/infuse_actions_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+                <!-- Row 1: Icon pills -->
+                <LinearLayout
+                    android:id="@+id/infuse_icon_actions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+                </LinearLayout>
+                <!-- Row 2: Primary pills -->
+                <LinearLayout
+                    android:id="@+id/infuse_primary_actions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+                </LinearLayout>
+            </LinearLayout>
+            <!-- END PULCIX CUSTOM THEME -->
+
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/details_overview_actions"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/lb_details_v2_actions_height"
                 android:gravity="center"
                 android:clipToPadding="false"
+                android:clipChildren="false"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:paddingStart="@dimen/lb_details_v2_description_margin_start"

@@ -67,8 +67,15 @@ public class CastRowPresenter extends FullWidthRowPresenter implements Backgroun
     public void setBackgroundColor(int color) {
         mColor = color;
 
-        if (mHolder != null)
-            mHolder.mFullWidthViewHolder.getMainContainer().setBackgroundColor(color);
+        if (mHolder != null) {
+            // BEGIN PULCIX CUSTOM THEME
+            if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(mHolder.mFullWidthViewHolder.view.getContext()).isInfuseTheme()) {
+                mHolder.mFullWidthViewHolder.getMainContainer().setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            } else {
+            // END PULCIX CUSTOM THEME
+                mHolder.mFullWidthViewHolder.getMainContainer().setBackgroundColor(color);
+            }
+        }
     }
 
     public CastRowPresenter(int maxLines, int color) {
@@ -95,7 +102,13 @@ public class CastRowPresenter extends FullWidthRowPresenter implements Backgroun
         View detailsView = LayoutInflater.from(parent.getContext()).inflate(R.layout.leanback_details_director_and_cast_group, fullwidthContainer, false);
         fullwidthContainer.addView(detailsView);
 
-        fullwidthContainer.setBackgroundColor(mColor);
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(parent.getContext()).isInfuseTheme()) {
+            fullwidthContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        } else {
+            fullwidthContainer.setBackgroundColor(mColor);
+        }
+        // END PULCIX CUSTOM THEME
 
         return new CastViewHolder(fullWidthViewHolder, detailsView);
     }

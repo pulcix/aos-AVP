@@ -7,6 +7,7 @@
 
     <!-- Override Nova / Leanback theme colors -->
     <color name="colorAccent">#FF7F02</color>
+    <color name="theme_background_infuse" tools:override="true">#000000</color>
 
     <color name="theme_accent_infuse" tools:override="true">#FF7F02</color>
     <color name="theme_category_selector_infuse" tools:override="true">#FF7F02</color>

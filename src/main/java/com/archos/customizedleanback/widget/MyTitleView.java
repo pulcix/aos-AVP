@@ -88,7 +88,21 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
         }
         @Override
         public void updateComponentsVisibility(int flags) {
-            hideNativeOrbs();
+            if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+                hideNativeOrbs();
+            } else {
+                if (mInfuseSearchContainer != null) mInfuseSearchContainer.setVisibility(View.GONE);
+                if (mInfuseActionsContainer != null) mInfuseActionsContainer.setVisibility(View.GONE);
+
+                int visibility = (flags & TitleViewAdapter.BRANDING_VIEW_VISIBLE) == TitleViewAdapter.BRANDING_VIEW_VISIBLE
+                        ? View.VISIBLE : View.GONE;
+                mBadgeView.setVisibility(mBadgeView.getDrawable() != null ? visibility : View.GONE);
+                mTextView.setVisibility(mBadgeView.getDrawable() == null ? visibility : View.GONE);
+
+                int searchVisibility = (flags & TitleViewAdapter.SEARCH_VIEW_VISIBLE) == TitleViewAdapter.SEARCH_VIEW_VISIBLE
+                        ? View.VISIBLE : View.GONE;
+                mSearchOrbView.setVisibility(mSearchClickListener != null ? searchVisibility : View.GONE);
+            }
         }
     };
 
@@ -198,8 +212,12 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
                 mInfuseActionsContainer.setVisibility(View.VISIBLE);
 
                 ImageView[] btns = new ImageView[] { mBtnInfuseSort, mBtnInfuseRefresh, mBtnInfuseSettings };
+                int defaultGrey = 0xFF999999;
+                if (mInfuseSearchIcon != null) mInfuseSearchIcon.setColorFilter(defaultGrey);
+                if (mInfuseSearchText != null) mInfuseSearchText.setTextColor(defaultGrey);
                 for (ImageView btn : btns) {
                     if (btn != null) {
+                        btn.setColorFilter(defaultGrey);
                         btn.setFocusable(true);
                         btn.setFocusableInTouchMode(false);
                         btn.setOnFocusChangeListener(mInfuseFocusListener);
@@ -249,6 +267,13 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
                     });
                 }
             }
+        } else {
+            if (mInfuseSearchContainer != null) mInfuseSearchContainer.setVisibility(View.GONE);
+            if (mInfuseActionsContainer != null) mInfuseActionsContainer.setVisibility(View.GONE);
+            if (mSearchOrbView2 != null) mSearchOrbView2.setVisibility(View.GONE);
+            if (mSearchOrbView3 != null) mSearchOrbView3.setVisibility(View.GONE);
+            if (mSearchOrbView4 != null) mSearchOrbView4.setVisibility(View.GONE);
+            if (mSearchOrbView5 != null) mSearchOrbView5.setVisibility(View.GONE);
         }
         // END PULCIX CUSTOM THEME
 
@@ -308,7 +333,7 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
         @Override
         public void onFocusChange(View view, boolean focus) {
             float scale = focus ? 1.15f : 1.0f;
-            int tintColor = focus ? 0xFFFF7F02 : 0xFF8E8E93; // Infuse Orange or Grey
+            int tintColor = focus ? 0xFFFFFFFF : 0xFF999999; // Infuse Orange or Grey #8E8E93
 
             view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
 

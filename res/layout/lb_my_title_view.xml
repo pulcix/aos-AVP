@@ -212,11 +212,11 @@
             android:id="@+id/infuse_search_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="4dp"
             android:fontFamily="sans-serif-medium"
             android:text="@string/search_title"
-            android:textColor="#8E8E93"
-            android:textSize="18sp" />
+            android:textColor="#888888"
+            android:textSize="20sp" />
     </LinearLayout>
 
     <LinearLayout

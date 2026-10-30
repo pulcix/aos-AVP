@@ -53,6 +53,11 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
      */
     public static class ViewHolder extends Presenter.ViewHolder {
         final TextView mTitle;
+        // BEGIN PULCIX CUSTOM THEME
+        final ImageView mInfuseClearLogo;
+        final TextView mInfuseGenres;
+        final View mInfuseRatingGroup;
+        // END PULCIX CUSTOM THEME
         final View mEpisodeGroup;
         final View mContentRatingContainer;
         final TextView mEpisodeSXEX;
@@ -76,6 +81,11 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
         public ViewHolder(final View view) {
             super(view);
             mTitle = (TextView) view.findViewById(androidx.leanback.R.id.lb_details_description_title);
+            // BEGIN PULCIX CUSTOM THEME
+            mInfuseClearLogo = (ImageView) view.findViewById(R.id.infuse_clear_logo);
+            mInfuseGenres = (TextView) view.findViewById(R.id.infuse_genres);
+            mInfuseRatingGroup = view.findViewById(R.id.infuse_rating_group);
+            // END PULCIX CUSTOM THEME
             mEpisodeGroup = view.findViewById(R.id.episode_group);
             mEpisodeSXEX = (TextView) view.findViewById(R.id.episode_sxex);
             mEpisodeTitle = (TextView) view.findViewById(R.id.episode_title);
@@ -115,6 +125,17 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
             mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
                 @Override
                 public boolean onPreDraw() {
+                    // BEGIN PULCIX CUSTOM THEME
+                    if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(mTitle.getContext()).isInfuseTheme()) {
+                        if (mBody != null) {
+                            mBody.setMaxLines(3);
+                            mBody.setLines(3);
+                            mBody.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                        }
+                        removePreDrawListener();
+                        return true;
+                    }
+                    // END PULCIX CUSTOM THEME
                     final boolean titleOnTwoLines = (mTitle.getLineCount() > 1);
                     final boolean hasEpisodeLine = (mEpisodeGroup.getVisibility()==View.VISIBLE);
                     int bodymaxLines = titleOnTwoLines ? 4 : 6; // MAGICAL
@@ -149,7 +170,13 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
 
     @Override
     public final ViewHolder onCreateViewHolder(ViewGroup parent) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.leanback_details_description, parent, false);
+        // BEGIN PULCIX CUSTOM THEME
+        int layoutResId = R.layout.leanback_details_description;
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(parent.getContext()).isInfuseTheme()) {
+            layoutResId = R.layout.infuse_details_description;
+        }
+        View v = LayoutInflater.from(parent.getContext()).inflate(layoutResId, parent, false);
+        // END PULCIX CUSTOM THEME
         return new ViewHolder(v);
     }
 
@@ -211,6 +238,47 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
         else {
             displayGuessesVideoBadges(vh, video);
         }
+        
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(vh.view.getContext()).isInfuseTheme()) {
+            if (vh.mTitle != null) {
+                vh.mTitle.setMaxLines(2);
+                vh.mTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            }
+            if (vh.mBody != null) {
+                vh.mBody.setMaxLines(3);
+                vh.mBody.setLines(3);
+                vh.mBody.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                if (vh.mBody.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+                    android.view.ViewGroup.MarginLayoutParams lp = (android.view.ViewGroup.MarginLayoutParams) vh.mBody.getLayoutParams();
+                    lp.bottomMargin = (int) (16 * vh.view.getResources().getDisplayMetrics().density);
+                    vh.mBody.setLayoutParams(lp);
+                }
+                vh.mBody.post(() -> {
+                    vh.mBody.setMaxLines(3);
+                    vh.mBody.setLines(3);
+                    vh.mBody.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    if (vh.view != null) {
+                        vh.view.requestLayout();
+                    }
+                });
+            }
+            if (vh.mContentRatingContainer != null) {
+                vh.mContentRating.setTextColor(0xFFFFFFFF); // Bianco come nel file drawable
+            }
+            if (vh.mInfuseGenres != null) {
+                vh.mInfuseGenres.setVisibility(View.GONE); // Updated by VideoDetailsFragment when tags arrive
+            }
+            if (vh.mInfuseRatingGroup != null) {
+                float rating = video instanceof Movie ? ((Movie)video).getRating() : (video instanceof Episode ? ((Episode)video).getEpisodeRating() : 0f);
+                if (rating > 0) {
+                    vh.mInfuseRatingGroup.setVisibility(View.VISIBLE);
+                } else {
+                    vh.mInfuseRatingGroup.setVisibility(View.GONE);
+                }
+            }
+        }
+        // END PULCIX CUSTOM THEME
     }
 
     private void setTextOrSetInvisibleIfEmpty(TextView mTextView, String text) {
@@ -311,7 +379,11 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
 
         if (visible) {
             setTextOrSetGoneIfEmpty(vh.mResolutionBadge, resolutionBadgeRes);
-            vh.mResolutionBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+            if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(vh.view.getContext()).isInfuseTheme()) {
+                vh.mResolutionBadge.setTextColor(0xFFE5E5EA);
+            } else {
+                vh.mResolutionBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+            }
             vh.mResolutionBadgeContainer.setVisibility(View.VISIBLE);
         }
         else {
@@ -368,7 +440,11 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
 
             if (visible) {
                 setTextOrSetGoneIfEmpty(mSingleViewHolder.mResolutionBadge, resolutionBadgeRes);
-                mSingleViewHolder.mResolutionBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(mSingleViewHolder.view.getContext()).isInfuseTheme()) {
+                    mSingleViewHolder.mResolutionBadge.setTextColor(0xFFE5E5EA);
+                } else {
+                    mSingleViewHolder.mResolutionBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+                }
                 mSingleViewHolder.mResolutionBadgeContainer.setVisibility(View.VISIBLE);
             } else {
                 mSingleViewHolder.mResolutionBadge.setVisibility(View.GONE);
@@ -408,7 +484,11 @@ public class VideoDetailsDescriptionPresenter extends Presenter {
                 if (log.isDebugEnabled()) log.debug("displayActualVideoBadges {} visible true", audioBadgeRes);
 
                 setTextOrSetGoneIfEmpty(mSingleViewHolder.mAudioBadge, audioBadgeRes);
-                mSingleViewHolder.mAudioBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(mSingleViewHolder.view.getContext()).isInfuseTheme()) {
+                    mSingleViewHolder.mAudioBadge.setTextColor(0xFFE5E5EA);
+                } else {
+                    mSingleViewHolder.mAudioBadge.setTextColor(VideoDetailsFragment.getDominantColor());
+                }
                 mSingleViewHolder.mAudioBadgeContainer.setVisibility(View.VISIBLE);
             }
             else {

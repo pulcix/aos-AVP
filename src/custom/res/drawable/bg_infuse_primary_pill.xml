@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#FF7F02" /> <!-- Infuse Orange -->
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#0DFFFFFF" /> <!-- Vetro -->
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+</selector>

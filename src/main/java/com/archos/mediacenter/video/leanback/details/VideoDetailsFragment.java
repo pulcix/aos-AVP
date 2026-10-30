@@ -234,6 +234,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     private Row mBackdropsRow;
 
     private DetailsOverviewRow mDetailsOverviewRow;
+    private View mInfuseDarkOverlay;
 
     private AsyncTask mDetailRowBuilderTask;
     private AsyncTask mBackdropTask;
@@ -344,8 +345,23 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         setTopOffsetRatio(0.5f);
         XmlDb.getInstance().addResumeChangeListener(this);
         mColor = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+        // BEGIN PULCIX CUSTOM THEME
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            setTopOffsetRatio(0.08f);
+            mColor = Color.BLACK;
+        }
+        // END PULCIX CUSTOM THEME
+
         mDescriptionPresenter = new VideoDetailsDescriptionPresenter();
         mOverviewRowPresenter = new ArchosDetailsOverviewRowPresenter(mDescriptionPresenter);
+
+        // BEGIN PULCIX CUSTOM THEME
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            mOverviewRowPresenter.setFacet(androidx.leanback.widget.ItemAlignmentFacet.class, null);
+            setTopOffsetRatio(0.425f); // Sposta details_root
+            mColor = Color.BLACK;
+        }
+        // END PULCIX CUSTOM THEME
         //be aware of a hack to avoid fullscreen overview : cf onSetRowStatus
         FullWidthDetailsOverviewSharedElementHelper helper = new FullWidthDetailsOverviewSharedElementHelper();
         helper.setSharedElementEnterTransition(getActivity(), VideoDetailsActivity.SHARED_ELEMENT_NAME, 1000);
@@ -496,6 +512,15 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         }
         oldPos = selectedPosition;
         oldSelectedSubPosition = selectedSubPosition;
+
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            if (mInfuseDarkOverlay != null) {
+                float targetAlpha = (selectedPosition > 0) ? 1.0f : 0.0f;
+                mInfuseDarkOverlay.animate().alpha(targetAlpha).setDuration(250).start();
+            }
+        }
+        // END PULCIX CUSTOM THEME
     }
 
     @Override
@@ -516,7 +541,101 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mOverlay = new Overlay(this);
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            View detailsFragmentRoot = view.findViewById(androidx.leanback.R.id.details_fragment_root);
+            if (detailsFragmentRoot != null) {
+                detailsFragmentRoot.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_infuse_details_vignette));
+            } else {
+                view.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_infuse_details_vignette));
+            }
+
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup root = (android.view.ViewGroup) view;
+                if (mInfuseDarkOverlay != null && mInfuseDarkOverlay.getParent() != null) {
+                    ((android.view.ViewGroup) mInfuseDarkOverlay.getParent()).removeView(mInfuseDarkOverlay);
+                }
+                mInfuseDarkOverlay = new View(getContext());
+                mInfuseDarkOverlay.setBackgroundColor(0xFF000000); // 100% black
+                mInfuseDarkOverlay.setAlpha(0f);
+                int insertIndex = detailsFragmentRoot != null ? root.indexOfChild(detailsFragmentRoot) : -1;
+                if (insertIndex != -1) {
+                    root.addView(mInfuseDarkOverlay, insertIndex, new android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+                } else {
+                    root.addView(mInfuseDarkOverlay, new android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+                }
+            }
+
+            showTitle(false);
+            view.post(() -> {
+                showTitle(false);
+                View titleView = getTitleView();
+                if (titleView != null) titleView.setVisibility(View.GONE);
+                View titleGroup = view.findViewById(androidx.leanback.R.id.browse_title_group);
+                if (titleGroup != null) titleGroup.setVisibility(View.GONE);
+                if (mDetailsOverviewRow != null && mDetailsOverviewRow.getActionsAdapter() instanceof VideoActionAdapter) {
+                    updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
+                }
+                applyInfuseTopAlignment();
+                if (getRowsSupportFragment() != null && getRowsSupportFragment().getVerticalGridView() != null) {
+                    getRowsSupportFragment().getVerticalGridView().setOnChildViewHolderSelectedListener(
+                        new androidx.leanback.widget.OnChildViewHolderSelectedListener() {
+                            @Override
+                            public void onChildViewHolderSelected(androidx.recyclerview.widget.RecyclerView parent,
+                                    androidx.recyclerview.widget.RecyclerView.ViewHolder child, int position, int subposition) {
+                                if (mInfuseDarkOverlay != null) {
+                                    float targetAlpha = (position > 0) ? 1.0f : 0.0f;
+                                    mInfuseDarkOverlay.animate().alpha(targetAlpha).setDuration(250).start();
+                                }
+                            }
+                        });
+                }
+            });
+        }
+        // END PULCIX CUSTOM THEME
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    private void applyInfuseTopAlignment() {
+        View root = getView();
+        if (root == null || getActivity() == null || !com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) return;
+
+        View titleGroup = root.findViewById(androidx.leanback.R.id.browse_title_group);
+        if (titleGroup != null) {
+            titleGroup.setVisibility(View.GONE);
+            if (titleGroup.getLayoutParams() != null) {
+                titleGroup.getLayoutParams().height = 0;
+                titleGroup.requestLayout();
+            }
+        }
+    }
+
+    @Override
+    public void showTitle(boolean show) {
+        if (getActivity() != null && com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            super.showTitle(false);
+            View titleView = getTitleView();
+            if (titleView != null) {
+                titleView.setVisibility(View.GONE);
+                if (titleView.getLayoutParams() != null) titleView.getLayoutParams().height = 0;
+            }
+            if (getView() != null) {
+                View titleGroup = getView().findViewById(androidx.leanback.R.id.browse_title_group);
+                if (titleGroup != null) {
+                    titleGroup.setVisibility(View.GONE);
+                    if (titleGroup.getLayoutParams() != null) titleGroup.getLayoutParams().height = 0;
+                    titleGroup.requestLayout();
+                }
+            }
+        } else {
+            super.showTitle(show);
+        }
+    }
+    // END PULCIX CUSTOM THEME
 
     @Override
     public void onDestroyView() {
@@ -546,6 +665,20 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     public void onResume() {
         super.onResume();
         if (log.isDebugEnabled()) log.debug("onResume");
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            showTitle(false);
+            if (getView() != null) {
+                getView().post(() -> {
+                    showTitle(false);
+                    View titleView = getTitleView();
+                    if (titleView != null) titleView.setVisibility(View.GONE);
+                    View titleGroup = getView().findViewById(androidx.leanback.R.id.browse_title_group);
+                    if (titleGroup != null) titleGroup.setVisibility(View.GONE);
+                });
+            }
+        }
+        // END PULCIX CUSTOM THEME
         mShouldUpdateRemoteResume = true;
         mOverlay.resume();
         if(mResumeFromPlayer && ArchosUtils.isAmazonApk()) {
@@ -718,6 +851,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 mShouldDisplayConfirmDelete = true;
                 
                 ((VideoActionAdapter)mDetailsOverviewRow.getActionsAdapter()).update(mVideo, mLaunchedFromPlayer, mShouldDisplayRemoveFromList, mShouldDisplayConfirmDelete, mNextEpisode, mIsTvEpisode);
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
+                }
             }
             else if (action.getId() == VideoActionAdapter.ACTION_CONFIRM_DELETE) {
                 deleteFile_async(mVideo);
@@ -767,6 +903,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 mOverviewRowPresenter.moveSelectedPosition(offset);
                 DbUtils.markAsRead(getActivity(), mVideo);
                 getActivity().setResult(Activity.RESULT_OK);
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
+                }
             }
             else if (action.getId() == VideoActionAdapter.ACTION_MARK_AS_NOT_WATCHED) {
                 int offset = 0;
@@ -780,6 +919,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 mOverviewRowPresenter.moveSelectedPosition(offset);
                 DbUtils.markAsNotRead(getActivity(), mVideo);
                 getActivity().setResult(Activity.RESULT_OK);
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
+                }
             }
         }
     };
@@ -1049,6 +1191,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
             if (smoothUpdate) {
                 mColor = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+                // BEGIN PULCIX CUSTOM THEME
+                if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) mColor = Color.BLACK;
+                // END PULCIX CUSTOM THEME
                 
                 mVideoBadgePresenter.setSelectedBackgroundColor(mColor);
                 mOverviewRowPresenter.updateBackgroundColor(mColor);
@@ -1080,6 +1225,14 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             //currentVideo.setRemoteResumeMs(oldVideoObject.getRemoteResumeMs());
         }
         mHasRetrievedDetails = true;
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            if (mDetailsOverviewRow != null && mDetailsOverviewRow.getActionsAdapter() instanceof VideoActionAdapter) {
+                updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
+            }
+            applyInfuseTopAlignment();
+        }
+        // END PULCIX CUSTOM THEME
         return smoothUpdate;
     }
 
@@ -1217,7 +1370,16 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             ps.addClassPresenter(DetailsOverviewRow.class, mOverviewRowPresenter);
             ps.addClassPresenter(SubtitlesDetailsRow.class, new SubtitlesDetailsRowPresenter(VideoDetailsFragment.this, mColor));
             ps.addClassPresenter(FileDetailsRow.class,  new FileDetailsRowPresenter(mColor));
-            ps.addClassPresenter(ListRow.class, new ListRowPresenter());
+            // BEGIN PULCIX CUSTOM THEME
+            if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter dpadPresenter =
+                        new com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter();
+                dpadPresenter.setSelectEffectEnabled(false);
+                ps.addClassPresenter(ListRow.class, dpadPresenter);
+            } else {
+                ps.addClassPresenter(ListRow.class, new ListRowPresenter());
+            }
+            // END PULCIX CUSTOM THEME
             ps.addClassPresenter(SelectableListRow.class, mFileListRowPresenter);
             ps.addClassPresenter(PlotAndGenresRow.class, new PlotAndGenresRowPresenter(14,mColor)); // 14 lines max to fit on screen
             ps.addClassPresenter(CastRow.class, new CastRowPresenter(14,mColor)); // 14 lines max to fit on screen
@@ -1231,8 +1393,10 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 INDEX_SUBTITLES ++;
                 INDEX_FILEDETAILS ++;
             }
-            mAdapter.add(INDEX_SUBTITLES, mSubtitlesDetailsRow);
-            mAdapter.add(INDEX_FILEDETAILS, mFileDetailsRow);
+            if (!com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                mAdapter.add(INDEX_SUBTITLES, mSubtitlesDetailsRow);
+                mAdapter.add(INDEX_FILEDETAILS, mFileDetailsRow);
+            }
         }
         else{
            // mAdapter.replace(INDEX_MAIN, mDetailsOverviewRow);
@@ -1244,15 +1408,17 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                     INDEX_FILEDETAILS ++;
                 }
             }
-            if(mAdapter.size()>INDEX_SUBTITLES)
-                mAdapter.replace(INDEX_SUBTITLES, mSubtitlesDetailsRow);
-            else
-                mAdapter.add(INDEX_SUBTITLES, mSubtitlesDetailsRow);
+            if (!com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                if(mAdapter.size()>INDEX_SUBTITLES)
+                    mAdapter.replace(INDEX_SUBTITLES, mSubtitlesDetailsRow);
+                else
+                    mAdapter.add(INDEX_SUBTITLES, mSubtitlesDetailsRow);
 
-            if(mAdapter.size()>INDEX_FILEDETAILS)
-                mAdapter.replace(INDEX_FILEDETAILS, mFileDetailsRow);
-            else
-                mAdapter.add(INDEX_FILEDETAILS, mFileDetailsRow);
+                if(mAdapter.size()>INDEX_FILEDETAILS)
+                    mAdapter.replace(INDEX_FILEDETAILS, mFileDetailsRow);
+                else
+                    mAdapter.add(INDEX_FILEDETAILS, mFileDetailsRow);
+            }
             if(mAdapter.size()>INDEX_FILEDETAILS+1)
                 mAdapter.removeItems(INDEX_FILEDETAILS+1, mAdapter.size()-INDEX_FILEDETAILS-1);
         }
@@ -1332,6 +1498,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             mDetailsOverviewRow.setImageScaleUpAllowed(true);
         }
 
+        // BEGIN PULCIX CUSTOM THEME
+        applyInfuseTopAlignment();
+        // END PULCIX CUSTOM THEME
     }
 
     //--------- ------------------------------------------
@@ -1341,6 +1510,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         protected Bitmap doInBackground(Video... videos) {
             Video video = videos[0];
             mColor = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+            // BEGIN PULCIX CUSTOM THEME
+            if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) mColor = Color.BLACK;
+            // END PULCIX CUSTOM THEME
             mVideoBadgePresenter.setSelectedBackgroundColor(mColor);
 
             Uri imageUri = null;
@@ -1378,7 +1550,12 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 else if (palette.getDarkMutedSwatch() != null)
                     mColor = palette.getDarkMutedSwatch().getRgb();
                 else
-        mColor = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+                    mColor = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+                // BEGIN PULCIX CUSTOM THEME
+                if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    mColor = Color.BLACK;
+                }
+                // END PULCIX CUSTOM THEME
                 dominantColor = mColor;
                 mVideoBadgePresenter.setSelectedBackgroundColor(mColor);
                 mOverviewRowPresenter.updateBackgroundColor(mColor);
@@ -1442,7 +1619,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
             // update the details row and replace it in the adapter
             mFileDetailsRow = new FileDetailsRow(getActivity(), mVideo, mPlayerType);
-            mAdapter.replace(INDEX_FILEDETAILS, mFileDetailsRow);
+            if (!com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                mAdapter.replace(INDEX_FILEDETAILS, mFileDetailsRow);
+            }
         }
     }
 
@@ -1516,19 +1695,46 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 }
             }
             if (tags!=null) {
+                // BEGIN PULCIX CUSTOM THEME
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    loadInfuseClearLogo(tags);
+                }
+                // END PULCIX CUSTOM THEME
+
                 // Plot & Genres
                 final String plot = tags.getPlot();
                 String genres = null;
                 if (tags instanceof VideoTags) {
                     genres = ((VideoTags) tags).getGenresFormatted();
                 }
-                // Keep it simple: we do not display the row if plot==null && genres!=null (very unlikely and not a big deal)
-                if (plot != null && !plot.isEmpty()) {
-                    if(mPlotAndGenresRow!=null&&mAdapter.indexOf(mPlotAndGenresRow)!=-1)
-                        mAdapter.remove(mPlotAndGenresRow);
 
-                    mPlotAndGenresRow = new PlotAndGenresRow(getString(R.string.scrap_plot), plot, genres);
-                    mAdapter.add(mPlotAndGenresRow);
+                // BEGIN PULCIX CUSTOM THEME
+                if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    if (mPlotAndGenresRow != null && mAdapter.indexOf(mPlotAndGenresRow) != -1) {
+                        mAdapter.remove(mPlotAndGenresRow);
+                    }
+                    View root = getView();
+                    if (root != null) {
+                        android.widget.TextView infuseGenresTv = root.findViewById(R.id.infuse_genres);
+                        if (infuseGenresTv != null) {
+                            if (genres != null && !genres.isEmpty()) {
+                                infuseGenresTv.setText(genres);
+                                infuseGenresTv.setVisibility(View.VISIBLE);
+                            } else {
+                                infuseGenresTv.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                } else {
+                // END PULCIX CUSTOM THEME
+                    // Keep it simple: we do not display the row if plot==null && genres!=null (very unlikely and not a big deal)
+                    if (plot != null && !plot.isEmpty()) {
+                        if(mPlotAndGenresRow!=null&&mAdapter.indexOf(mPlotAndGenresRow)!=-1)
+                            mAdapter.remove(mPlotAndGenresRow);
+
+                        mPlotAndGenresRow = new PlotAndGenresRow(getString(R.string.scrap_plot), plot, genres);
+                        mAdapter.add(mPlotAndGenresRow);
+                    }
                 }
 
                 // Cast
@@ -1540,10 +1746,47 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 }
                 // Keep it simple: we do not display the row if cast==null && directors!=null (very unlikely and not a big deal)
                 if (cast != null && cast.length() > 0) {
-                    if(mCastRow!=null&&mAdapter.indexOf(mCastRow)!=-1)
+                    if (mCastRow != null && mAdapter.indexOf(mCastRow) != -1)
                         mAdapter.remove(mCastRow);
-                    mCastRow = new CastRow(getString(R.string.scrap_cast), cast, tags.getDirectorsFormatted());
-                    mAdapter.add(mCastRow);
+                    // BEGIN PULCIX CUSTOM THEME
+                    if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                        ArrayObjectAdapter castAdapter = new ArrayObjectAdapter(new InfuseCastPresenter());
+                        if (tags instanceof EpisodeTags) {
+                            ShowTags showTags = ((EpisodeTags) tags).getShowTags();
+                            if (showTags != null) {
+                                if (showTags.getDirectors() != null) {
+                                    for (String dir : showTags.getDirectors()) {
+                                        castAdapter.add(new InfuseCastMember(dir, "Director", null));
+                                    }
+                                }
+                                if (showTags.getActors() != null) {
+                                    for (java.util.Map.Entry<String, String> entry : showTags.getActors().entrySet()) {
+                                        castAdapter.add(new InfuseCastMember(entry.getKey(), entry.getValue(), null));
+                                    }
+                                }
+                            }
+                        } else {
+                            if (tags.getDirectors() != null) {
+                                for (String dir : tags.getDirectors()) {
+                                    castAdapter.add(new InfuseCastMember(dir, "Director", null));
+                                }
+                            }
+                            if (tags.getActors() != null) {
+                                for (java.util.Map.Entry<String, String> entry : tags.getActors().entrySet()) {
+                                    castAdapter.add(new InfuseCastMember(entry.getKey(), entry.getValue(), null));
+                                }
+                            }
+                        }
+                        if (castAdapter.size() > 0) {
+                            mCastRow = new ListRow(new HeaderItem("Cast and Crew"), castAdapter);
+                            mAdapter.add(mCastRow);
+                        }
+                        loadInfuseCastPhotos(tags, castAdapter);
+                    } else {
+                        mCastRow = new CastRow(getString(R.string.scrap_cast), cast, tags.getDirectorsFormatted());
+                        mAdapter.add(mCastRow);
+                    }
+                    // END PULCIX CUSTOM THEME
                 }
             }
             
@@ -1563,7 +1806,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
             }
             // Posters
-            if (mPosters!=null && !mPosters.isEmpty()) {
+            if (mPosters!=null && !mPosters.isEmpty() && !com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
                 ArrayObjectAdapter postersRowAdapter = new ArrayObjectAdapter(new ScraperImagePosterPresenter());
                 postersRowAdapter.addAll(0, mPosters);
                 if(mPostersRow!=null&&mAdapter.indexOf(mPostersRow)!=-1)
@@ -1575,7 +1818,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             }
 
             // Backdrops
-            if (mBackdrops!=null && !mBackdrops.isEmpty()) {
+            if (mBackdrops!=null && !mBackdrops.isEmpty() && !com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
                 ArrayObjectAdapter backdropsRowAdapter = new ArrayObjectAdapter(new ScraperImageBackdropPresenter());
                 backdropsRowAdapter.addAll(0, mBackdrops);
                 if(mBackdropsRow!=null&&mAdapter.indexOf(mBackdropsRow)!=-1)
@@ -1588,7 +1831,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
             // Web links
             List<String> links = getWebLinks(tags);
-            if (links.size()>0) {
+            if (links.size()>0 && !com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
                 // less bling bling
                 //ArrayObjectAdapter rowAdapter = new ArrayObjectAdapter(new WebPageLinkPresenter());
                 ArrayObjectAdapter rowAdapter = new ArrayObjectAdapter(new WebLinkPresenter(mColor));
@@ -1597,6 +1840,10 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 }
                 mAdapter.add(new ListRow( new HeaderItem(getString(R.string.leanback_weblinks_header)), rowAdapter));
             }
+
+            // BEGIN PULCIX CUSTOM THEME
+            applyInfuseTopAlignment();
+            // END PULCIX CUSTOM THEME
         }
     }
 
@@ -1659,6 +1906,213 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     /**
      * Update subtitles details when both metadata (for integrated subs) and external sub checking is done
      */
+    // BEGIN PULCIX CUSTOM THEME
+    private void updateInfuseActions(VideoActionAdapter adapter) {
+        View root = getView();
+        if (root == null || getActivity() == null || mVideo == null) return;
+
+        View nativeGrid = root.findViewById(androidx.leanback.R.id.details_overview_actions);
+        if (nativeGrid != null) {
+            nativeGrid.setVisibility(View.GONE);
+            if (nativeGrid instanceof androidx.leanback.widget.HorizontalGridView) {
+                ((androidx.leanback.widget.HorizontalGridView) nativeGrid).setAdapter(null);
+            }
+        }
+
+        android.widget.LinearLayout infuseActionsContainer = root.findViewById(R.id.infuse_actions_container);
+        if (infuseActionsContainer != null) {
+            infuseActionsContainer.setVisibility(View.VISIBLE);
+            android.widget.LinearLayout iconRow = root.findViewById(R.id.infuse_icon_actions);
+            android.widget.LinearLayout primaryRow = root.findViewById(R.id.infuse_primary_actions);
+            if (iconRow != null && primaryRow != null) {
+                boolean hadIconFocus = iconRow.hasFocus();
+                int focusedIconIndex = -1;
+                for (int c = 0; c < iconRow.getChildCount(); c++) {
+                    if (iconRow.getChildAt(c).hasFocus()) {
+                        focusedIconIndex = c;
+                        break;
+                    }
+                }
+
+                iconRow.removeAllViews();
+                primaryRow.removeAllViews();
+
+                float density = getResources().getDisplayMetrics().density;
+                int iconWidth = (int) (54 * density);
+                int iconHeight = (int) (38 * density);
+                int iconMarginEnd = (int) (14 * density);
+
+                int primaryWidth = (int) (200 * density);
+                int primaryHeight = (int) (46 * density);
+                int primaryMarginEnd = (int) (12 * density);
+
+                android.view.LayoutInflater inflater = android.view.LayoutInflater.from(getActivity());
+                View firstPrimaryView = null;
+
+                // 1. PRIMARY ROW (Play / Resume / Play from beginning)
+                if (adapter != null) {
+                    for (int i = 0; i < adapter.size(); i++) {
+                        Object item = adapter.get(i);
+                        if (item instanceof Action) {
+                            Action action = (Action) item;
+                            long id = action.getId();
+                            if (id == VideoActionAdapter.ACTION_PLAY ||
+                                id == VideoActionAdapter.ACTION_RESUME ||
+                                id == VideoActionAdapter.ACTION_LOCAL_RESUME ||
+                                id == VideoActionAdapter.ACTION_REMOTE_RESUME ||
+                                id == VideoActionAdapter.ACTION_PLAY_FROM_BEGIN ||
+                                id == VideoActionAdapter.ACTION_NEXT_EPISODE ||
+                                id == VideoActionAdapter.ACTION_LIST_EPISODES) {
+
+                                View v = inflater.inflate(R.layout.infuse_action_primary_pill, primaryRow, false);
+                                android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(primaryWidth, primaryHeight);
+                                lp.setMarginEnd(primaryMarginEnd);
+                                v.setLayoutParams(lp);
+
+                                android.widget.TextView tv = v.findViewById(R.id.text);
+                                if (tv != null) tv.setText(action.getLabel1());
+                                v.setFocusable(true);
+                                v.setFocusableInTouchMode(false);
+                                v.setOnClickListener(v1 -> mOnActionClickedListener.onActionClicked(action));
+                                v.setOnFocusChangeListener((view, hasFocus) -> {
+                                    view.animate().scaleX(hasFocus ? 1.05f : 1.0f).scaleY(hasFocus ? 1.05f : 1.0f).setDuration(150).start();
+                                });
+                                primaryRow.addView(v);
+                                if (firstPrimaryView == null) firstPrimaryView = v;
+                            }
+                        }
+                    }
+                }
+
+                // 2. ICON ROW: 5 PULSANTI FISSI STILE INFUSE (54dp x 38dp, spacing 14dp)
+                int[] iconDrawables = new int[] {
+                    (mVideo.isWatched() || mIsVideoWatched) ? R.drawable.trakt_watched : R.drawable.ic_eye_outline,
+                    R.drawable.ic_infuse_bookmark,
+                    R.drawable.ic_infuse_subtitles,
+                    R.drawable.ic_infuse_info,
+                    R.drawable.ic_infuse_more
+                };
+
+                for (int idx = 0; idx < 5; idx++) {
+                    final int buttonIndex = idx;
+                    View v = inflater.inflate(R.layout.infuse_action_icon_pill, iconRow, false);
+                    android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(iconWidth, iconHeight);
+                    lp.setMarginEnd(iconMarginEnd);
+                    v.setLayoutParams(lp);
+
+                    android.widget.ImageView iv = v.findViewById(R.id.icon);
+                    if (iv != null) iv.setImageResource(iconDrawables[idx]);
+
+                    v.setFocusable(true);
+                    v.setFocusableInTouchMode(false);
+                    v.setOnFocusChangeListener((view, hasFocus) -> {
+                        view.animate().scaleX(hasFocus ? 1.08f : 1.0f).scaleY(hasFocus ? 1.08f : 1.0f).setDuration(150).start();
+                    });
+
+                    v.setOnClickListener(v1 -> {
+                        if (buttonIndex == 0) {
+                            // Toggle Watched
+                            boolean currentlyWatched = mVideo.isWatched() || mIsVideoWatched;
+                            if (currentlyWatched) {
+                                mIsVideoWatched = false;
+                                DbUtils.markAsNotRead(getActivity(), mVideo);
+                                if (iv != null) iv.setImageResource(R.drawable.ic_eye_outline);
+                            } else {
+                                mIsVideoWatched = true;
+                                DbUtils.markAsRead(getActivity(), mVideo);
+                                if (iv != null) iv.setImageResource(R.drawable.trakt_watched);
+                            }
+                            if (getActivity() != null) getActivity().setResult(Activity.RESULT_OK);
+                        } else if (buttonIndex == 1) {
+                            // Bookmark / Add to List
+                            if (mVideo.hasScraperData()) {
+                                mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_ADD_TO_LIST));
+                            } else {
+                                Toast.makeText(getActivity(), R.string.scrap_no_info, Toast.LENGTH_SHORT).show();
+                            }
+                        } else if (buttonIndex == 2) {
+                            // Subtitles Dialog
+                            String[] subOptions = new String[] { getString(R.string.get_subtitles_online), getString(R.string.get_subtitles_on_drive) };
+                            new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+                                .setTitle(R.string.category_languages)
+                                .setItems(subOptions, (d, which) -> {
+                                    if (which == 0) performSubtitleDownload();
+                                    else performSubtitleChoose();
+                                }).show();
+                        } else if (buttonIndex == 3) {
+                            // File Info Dialog
+                            String infoMsg = mVideo.getFilePath();
+                            if (mVideo.getMetadata() != null) {
+                                infoMsg += "\n\nSize: " + android.text.format.Formatter.formatFileSize(getActivity(), mVideo.getMetadata().getFileSize());
+                            }
+                            new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+                                .setTitle(R.string.info_tab_file)
+                                .setMessage(infoMsg)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show();
+                        } else if (buttonIndex == 4) {
+                            // More (...) Menu: Scrap / Unscrap / Remove from library / Delete file
+                            String[] moreLabels = new String[] {
+                                mVideo.hasScraperData() ? getString(R.string.scrap_remove) : getString(R.string.leanback_scrap),
+                                getString(R.string.video_browser_unindex_file),
+                                getString(R.string.delete)
+                            };
+                            new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+                                .setItems(moreLabels, (d, which) -> {
+                                    if (which == 0) {
+                                        if (mVideo.hasScraperData()) {
+                                            DbUtils.deleteScraperInfo(getActivity(), mVideo);
+                                            View logoView = root.findViewById(R.id.infuse_clear_logo);
+                                            View titleView = root.findViewById(androidx.leanback.R.id.lb_details_description_title);
+                                            if (logoView != null) logoView.setVisibility(View.GONE);
+                                            if (titleView != null) titleView.setVisibility(View.VISIBLE);
+                                        } else {
+                                            mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_SCRAP));
+                                        }
+                                    } else if (which == 1) {
+                                        DbUtils.markAsHiddenByUser(getActivity(), mVideo);
+                                    } else if (which == 2) {
+                                        deleteFile_async(mVideo);
+                                    }
+                                }).show();
+                        }
+                    });
+                    iconRow.addView(v);
+                }
+
+                // Link D-Pad Up/Down
+                View firstIconView = iconRow.getChildCount() > 0 ? iconRow.getChildAt(0) : null;
+                if (firstIconView != null) {
+                    int iconId = firstIconView.getId() != View.NO_ID ? firstIconView.getId() : View.generateViewId();
+                    firstIconView.setId(iconId);
+                    for (int j = 0; j < primaryRow.getChildCount(); j++) {
+                        primaryRow.getChildAt(j).setNextFocusUpId(iconId);
+                    }
+                }
+                if (firstPrimaryView != null) {
+                    int primaryId = firstPrimaryView.getId() != View.NO_ID ? firstPrimaryView.getId() : View.generateViewId();
+                    firstPrimaryView.setId(primaryId);
+                    for (int j = 0; j < iconRow.getChildCount(); j++) {
+                        iconRow.getChildAt(j).setNextFocusDownId(primaryId);
+                    }
+                }
+
+                if (hadIconFocus && focusedIconIndex >= 0 && focusedIconIndex < iconRow.getChildCount()) {
+                    final View toRestore = iconRow.getChildAt(focusedIconIndex);
+                    toRestore.post(toRestore::requestFocus);
+                } else if (firstPrimaryView != null) {
+                    final View toFocus = firstPrimaryView;
+                    toFocus.post(toFocus::requestFocus);
+                    toFocus.postDelayed(toFocus::requestFocus, 120);
+                }
+            }
+        }
+        if (mOverviewRowPresenter != null) {
+            mOverviewRowPresenter.updateBackgroundColor(android.graphics.Color.TRANSPARENT);
+        }
+    }
+    // END PULCIX CUSTOM THEME
+
     private void updateSubtitleRowWhenReady() {
         if (log.isDebugEnabled()) log.debug("updateSubtitleRowWhenReady: called");
         if (log.isDebugEnabled()) log.debug("updateSubtitleRowWhenReady: metadata={}", (mVideo.getMetadata() != null));
@@ -1668,7 +2122,9 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             if (log.isDebugEnabled()) log.debug("updateSubtitleRowWhenReady: updating row");
             try {
                 mSubtitlesDetailsRow = new SubtitlesDetailsRow(getActivity(), mVideo, mSubtitleListCache.get(mVideo.getFileUri()));
-                mAdapter.replace(INDEX_SUBTITLES, mSubtitlesDetailsRow);
+                if (!com.archos.mediacenter.video.utils.ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    mAdapter.replace(INDEX_SUBTITLES, mSubtitlesDetailsRow);
+                }
                 if (log.isDebugEnabled()) log.debug("updateSubtitleRowWhenReady: row updated successfully");
             } catch (Exception e) {
                 log.error("updateSubtitleRowWhenReady: error updating row", e);
@@ -1802,6 +2258,10 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                     color = palette.getDarkMutedSwatch().getRgb();
                 else
                     color = ThemeManager.getInstance(getActivity()).getDetailsPrimaryColor();
+
+                // BEGIN PULCIX CUSTOM THEME
+                if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) color = Color.BLACK;
+                // END PULCIX CUSTOM THEME
 
                 if (color != mColor) {
                     mColor = color;
@@ -1965,6 +2425,140 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         }
 
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    private void loadInfuseClearLogo(BaseTags tags) {
+        if (tags == null) return;
+        Activity activity = getActivity();
+        if (activity == null || activity.isDestroyed() || activity.isFinishing()) return;
+
+        String type = null;
+        long tmdbId = -1;
+
+        if (tags instanceof MovieTags) {
+            type = "movie";
+            tmdbId = tags.getOnlineId();
+        } else if (tags instanceof EpisodeTags) {
+            type = "tv";
+            EpisodeTags epTags = (EpisodeTags) tags;
+            tmdbId = mOnlineId > 0 ? mOnlineId : epTags.getShowId();
+        }
+
+        if (type == null || tmdbId <= 0) return;
+
+        java.io.File cacheFile = new java.io.File(activity.getCacheDir(), "clearlogo_" + type + "_" + tmdbId + ".png");
+        if (cacheFile.exists() && cacheFile.length() > 0) {
+            displayClearLogoFile(cacheFile);
+            return;
+        }
+
+        final String finalType = type;
+        final long finalTmdbId = tmdbId;
+
+        new Thread(() -> {
+            try {
+                String apiKey = "051012651ba326cf5b1e2f482342eaa2";
+                try {
+                    int resId = activity.getResources().getIdentifier("tmdb_api_key", "string", activity.getPackageName());
+                    if (resId != 0) {
+                        apiKey = activity.getString(resId);
+                    }
+                } catch (Exception ignored) {}
+
+                String urlString = "https://api.themoviedb.org/3/" + finalType + "/" + finalTmdbId + "/images?include_image_language=en,it,null&api_key=" + apiKey;
+                java.net.URL url = new java.net.URL(urlString);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setRequestMethod("GET");
+
+                if (conn.getResponseCode() == 200) {
+                    java.io.InputStream is = conn.getInputStream();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    reader.close();
+                    is.close();
+
+                    org.json.JSONObject json = new org.json.JSONObject(sb.toString());
+                    org.json.JSONArray logos = json.optJSONArray("logos");
+                    String selectedFilePath = null;
+                    if (logos != null && logos.length() > 0) {
+                        for (int i = 0; i < logos.length(); i++) {
+                            org.json.JSONObject logoObj = logos.optJSONObject(i);
+                            if (logoObj != null) {
+                                String path = logoObj.optString("file_path");
+                                if (path != null && !path.isEmpty()) {
+                                    if (selectedFilePath == null || path.endsWith(".png")) {
+                                        selectedFilePath = path;
+                                        if (path.endsWith(".png")) break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (selectedFilePath != null) {
+                        String imgUrl = "https://image.tmdb.org/t/p/w500" + selectedFilePath;
+                        java.net.URL dlUrl = new java.net.URL(imgUrl);
+                        java.net.HttpURLConnection dlConn = (java.net.HttpURLConnection) dlUrl.openConnection();
+                        dlConn.setConnectTimeout(8000);
+                        dlConn.setReadTimeout(8000);
+                        if (dlConn.getResponseCode() == 200) {
+                            java.io.InputStream inStream = dlConn.getInputStream();
+                            java.io.FileOutputStream outStream = new java.io.FileOutputStream(cacheFile);
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            while ((bytesRead = inStream.read(buffer)) != -1) {
+                                outStream.write(buffer, 0, bytesRead);
+                            }
+                            outStream.close();
+                            inStream.close();
+
+                            if (cacheFile.exists() && cacheFile.length() > 0) {
+                                mHandler.post(() -> displayClearLogoFile(cacheFile));
+                            }
+                        }
+                        dlConn.disconnect();
+                    }
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) log.debug("loadInfuseClearLogo failed", e);
+            }
+        }).start();
+    }
+
+    private void displayClearLogoFile(java.io.File file) {
+        View root = getView();
+        if (root == null || file == null || !file.exists()) return;
+        android.widget.ImageView logoView = root.findViewById(R.id.infuse_clear_logo);
+        View titleView = root.findViewById(androidx.leanback.R.id.lb_details_description_title);
+
+        if (logoView != null) {
+            com.squareup.picasso.Picasso.get().load(file).into(logoView, new com.squareup.picasso.Callback() {
+                @Override
+                public void onSuccess() {
+                    logoView.setVisibility(View.VISIBLE);
+                    if (titleView != null) {
+                        titleView.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    logoView.setVisibility(View.GONE);
+                    if (titleView != null) {
+                        titleView.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        }
+    }
+    // END PULCIX CUSTOM THEME
 
     private void sendDeleteResult(Uri file){
         if (log.isDebugEnabled()) log.debug("sendDeleteResult: {}", file);
@@ -2187,4 +2781,334 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     public static int getDominantColor() {
         return dominantColor;
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    private static class InfuseCastMember {
+        final String name;
+        final String role;
+        String profileUrl;
+        InfuseCastMember(String name, String role, String profileUrl) {
+            this.name = name;
+            this.role = role;
+            this.profileUrl = profileUrl;
+        }
+    }
+
+    private void loadInfuseCastPhotos(BaseTags tags, ArrayObjectAdapter castAdapter) {
+        if (tags == null || castAdapter == null) return;
+        Activity activity = getActivity();
+        if (activity == null || activity.isDestroyed() || activity.isFinishing()) return;
+
+        final String type = (tags instanceof EpisodeTags) ? "tv" : "movie";
+        long initialTmdbId = tags.getOnlineId();
+        if (initialTmdbId <= 0 && mOnlineId > 0) {
+            initialTmdbId = mOnlineId;
+        }
+        if (initialTmdbId <= 0 && tags instanceof EpisodeTags) {
+            initialTmdbId = ((EpisodeTags) tags).getShowId();
+        }
+        final long startTmdbId = initialTmdbId;
+        final String imdbId = tags.getImdbId();
+
+        new Thread(() -> {
+            try {
+                String apiKey = "051012651ba326cf5b1e2f482342eaa2";
+                try {
+                    int resId = activity.getResources().getIdentifier("tmdb_api_key", "string", activity.getPackageName());
+                    if (resId != 0) {
+                        String resKey = activity.getString(resId);
+                        if (resKey != null && !resKey.trim().isEmpty()) apiKey = resKey.trim();
+                    }
+                } catch (Exception ignored) {}
+
+                long resolvedTmdbId = startTmdbId;
+
+                // Fallback 1: se non abbiamo un tmdbId valido ma abbiamo imdbId, risolviamolo via /find
+                if (resolvedTmdbId <= 0 && imdbId != null && !imdbId.trim().isEmpty()) {
+                    resolvedTmdbId = resolveTmdbIdFromImdb(imdbId.trim(), type, apiKey);
+                }
+
+                if (resolvedTmdbId <= 0) return;
+
+                String jsonResponse = fetchCreditsJson(type, resolvedTmdbId, apiKey);
+
+                // Fallback 2: se l'ID salvato non era un ID TMDB valido (es. 404) e abbiamo imdbId, riproviamo risolvendo da IMDb
+                if (jsonResponse == null && imdbId != null && !imdbId.trim().isEmpty()) {
+                    long fallbackId = resolveTmdbIdFromImdb(imdbId.trim(), type, apiKey);
+                    if (fallbackId > 0 && fallbackId != resolvedTmdbId) {
+                        jsonResponse = fetchCreditsJson(type, fallbackId, apiKey);
+                    }
+                }
+
+                if (jsonResponse == null) return;
+
+                org.json.JSONObject json = new org.json.JSONObject(jsonResponse);
+                List<InfuseCastMember> castMembers = new ArrayList<>();
+
+                // Directors from crew
+                org.json.JSONArray crew = json.optJSONArray("crew");
+                if (crew != null) {
+                    for (int i = 0; i < crew.length(); i++) {
+                        org.json.JSONObject obj = crew.optJSONObject(i);
+                        if (obj != null && "Director".equalsIgnoreCase(obj.optString("job"))) {
+                            String name = obj.optString("name");
+                            String path = obj.optString("profile_path");
+                            String photoUrl = (path != null && !path.equals("null") && !path.isEmpty()) ? "https://image.tmdb.org/t/p/w185" + path : null;
+                            if (name != null && !name.isEmpty()) {
+                                castMembers.add(new InfuseCastMember(name, "Director", photoUrl));
+                            }
+                        }
+                    }
+                }
+
+                // Cast members (up to 15)
+                org.json.JSONArray cast = json.optJSONArray("cast");
+                if (cast != null) {
+                    int count = Math.min(cast.length(), 15);
+                    for (int i = 0; i < count; i++) {
+                        org.json.JSONObject obj = cast.optJSONObject(i);
+                        if (obj != null) {
+                            String name = obj.optString("name");
+                            String character = obj.optString("character");
+                            String path = obj.optString("profile_path");
+                            String photoUrl = (path != null && !path.equals("null") && !path.isEmpty()) ? "https://image.tmdb.org/t/p/w185" + path : null;
+                            if (name != null && !name.isEmpty()) {
+                                castMembers.add(new InfuseCastMember(name, character != null && !character.isEmpty() ? character : "Actor", photoUrl));
+                            }
+                        }
+                    }
+                }
+
+                if (!castMembers.isEmpty()) {
+                    mHandler.post(() -> {
+                        if (getActivity() == null || getActivity().isDestroyed() || getActivity().isFinishing()) return;
+                        castAdapter.clear();
+                        for (InfuseCastMember member : castMembers) {
+                            castAdapter.add(member);
+                        }
+                        castAdapter.notifyArrayItemRangeChanged(0, castAdapter.size());
+                        if (mAdapter != null && mCastRow != null) {
+                            int rowIdx = mAdapter.indexOf(mCastRow);
+                            if (rowIdx != -1) {
+                                mAdapter.notifyArrayItemRangeChanged(rowIdx, 1);
+                            }
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) log.debug("loadInfuseCastPhotos failed", e);
+            }
+        }).start();
+    }
+
+    private String fetchCreditsJson(String type, long tmdbId, String apiKey) {
+        java.net.HttpURLConnection conn = null;
+        try {
+            String urlString = "https://api.themoviedb.org/3/" + type + "/" + tmdbId + "/credits?api_key=" + apiKey;
+            java.net.URL url = new java.net.URL(urlString);
+            conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() == 200) {
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                reader.close();
+                return sb.toString();
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return null;
+    }
+
+    private long resolveTmdbIdFromImdb(String imdbId, String type, String apiKey) {
+        java.net.HttpURLConnection conn = null;
+        try {
+            String urlString = "https://api.themoviedb.org/3/find/" + imdbId + "?external_source=imdb_id&api_key=" + apiKey;
+            java.net.URL url = new java.net.URL(urlString);
+            conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() == 200) {
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                reader.close();
+                org.json.JSONObject json = new org.json.JSONObject(sb.toString());
+                String arrayKey = "tv".equals(type) ? "tv_results" : "movie_results";
+                org.json.JSONArray results = json.optJSONArray(arrayKey);
+                if (results != null && results.length() > 0) {
+                    return results.optJSONObject(0).optLong("id", -1);
+                }
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return -1;
+    }
+
+    private static class InfuseCastPresenter extends androidx.leanback.widget.Presenter {
+        @Override
+        public androidx.leanback.widget.Presenter.ViewHolder onCreateViewHolder(android.view.ViewGroup parent) {
+            android.content.Context context = parent.getContext();
+            float density = context.getResources().getDisplayMetrics().density;
+            int width = (int) (130 * density);
+            int height = (int) (175 * density);
+            int imgHeight = (int) (115 * density);
+
+            android.widget.LinearLayout card = new android.widget.LinearLayout(context);
+            card.setOrientation(android.widget.LinearLayout.VERTICAL);
+            card.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(width, height);
+            lp.setMargins(0, 0, 0, 0);
+            lp.setMarginStart(0);
+            lp.setMarginEnd(0);
+            card.setLayoutParams(lp);
+
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(0xFF1C1C1E);
+            bg.setCornerRadius(14 * density);
+            card.setBackground(bg);
+            card.setClipToOutline(true);
+
+            card.setFocusable(true);
+            card.setFocusableInTouchMode(false);
+            card.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(150).start();
+                    bg.setStroke((int) (2 * density), 0xFFFF7F02);
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start();
+                    bg.setStroke(0, 0);
+                }
+            });
+
+            // Top Frame: 130dp x 115dp
+            android.widget.FrameLayout topFrame = new android.widget.FrameLayout(context);
+            topFrame.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, imgHeight));
+
+            android.widget.ImageView photoIv = new android.widget.ImageView(context);
+            photoIv.setLayoutParams(new android.widget.FrameLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+            photoIv.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+
+            // Fallback Initials Circle
+            android.widget.TextView initialsTv = new android.widget.TextView(context);
+            int avatarSize = (int) (48 * density);
+            android.widget.FrameLayout.LayoutParams avatarLp = new android.widget.FrameLayout.LayoutParams(avatarSize, avatarSize);
+            avatarLp.gravity = android.view.Gravity.CENTER;
+            initialsTv.setLayoutParams(avatarLp);
+            initialsTv.setGravity(android.view.Gravity.CENTER);
+            initialsTv.setTextColor(0xFFFFFFFF);
+            initialsTv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+            initialsTv.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            android.graphics.drawable.GradientDrawable avatarBg = new android.graphics.drawable.GradientDrawable();
+            avatarBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            avatarBg.setColor(0xFF2C2C2E);
+            initialsTv.setBackground(avatarBg);
+
+            topFrame.addView(initialsTv);
+            topFrame.addView(photoIv);
+
+            // Bottom Text Container
+            android.widget.LinearLayout textGroup = new android.widget.LinearLayout(context);
+            textGroup.setOrientation(android.widget.LinearLayout.VERTICAL);
+            textGroup.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            int padSide = (int) (6 * density);
+            int padTop = (int) (6 * density);
+            textGroup.setPadding(padSide, padTop, padSide, padSide);
+            textGroup.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+
+            // Actor Name
+            android.widget.TextView nameTv = new android.widget.TextView(context);
+            nameTv.setTextColor(0xFFFFFFFF);
+            nameTv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12);
+            nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
+            nameTv.setGravity(android.view.Gravity.CENTER);
+            nameTv.setMaxLines(1);
+            nameTv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+
+            // Role / Director
+            android.widget.TextView roleTv = new android.widget.TextView(context);
+            roleTv.setTextColor(0xFF8E8E93);
+            roleTv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11);
+            roleTv.setGravity(android.view.Gravity.CENTER);
+            roleTv.setMaxLines(1);
+            roleTv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+
+            textGroup.addView(nameTv);
+            textGroup.addView(roleTv);
+
+            card.addView(topFrame);
+            card.addView(textGroup);
+
+            return new androidx.leanback.widget.Presenter.ViewHolder(card);
+        }
+
+        @Override
+        public void onBindViewHolder(androidx.leanback.widget.Presenter.ViewHolder viewHolder, Object item) {
+            if (!(item instanceof InfuseCastMember)) return;
+            InfuseCastMember member = (InfuseCastMember) item;
+            android.view.ViewGroup card = (android.view.ViewGroup) viewHolder.view;
+
+            android.widget.FrameLayout topFrame = (android.widget.FrameLayout) card.getChildAt(0);
+            android.widget.TextView initialsTv = (android.widget.TextView) topFrame.getChildAt(0);
+            android.widget.ImageView photoIv = (android.widget.ImageView) topFrame.getChildAt(1);
+
+            android.widget.LinearLayout textGroup = (android.widget.LinearLayout) card.getChildAt(1);
+            android.widget.TextView nameTv = (android.widget.TextView) textGroup.getChildAt(0);
+            android.widget.TextView roleTv = (android.widget.TextView) textGroup.getChildAt(1);
+
+            nameTv.setText(member.name != null ? member.name : "");
+            roleTv.setText(member.role != null && !member.role.isEmpty() ? member.role : "");
+
+            if (member.name != null && !member.name.trim().isEmpty()) {
+                String[] parts = member.name.trim().split("\\s+");
+                if (parts.length >= 2) {
+                    initialsTv.setText(("" + parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase());
+                } else {
+                    initialsTv.setText(("" + member.name.charAt(0)).toUpperCase());
+                }
+            } else {
+                initialsTv.setText("?");
+            }
+
+            photoIv.setImageDrawable(null); // Reset immagine per evitare riutilizzo sbagliato
+            if (member.profileUrl != null && !member.profileUrl.isEmpty()) {
+                photoIv.setVisibility(android.view.View.VISIBLE);
+                com.squareup.picasso.Picasso.get()
+                    .load(member.profileUrl)
+                    .fit()
+                    .centerCrop()
+                    .into(photoIv, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            photoIv.setVisibility(android.view.View.VISIBLE);
+                            initialsTv.setVisibility(android.view.View.GONE);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            photoIv.setVisibility(android.view.View.GONE);
+                            initialsTv.setVisibility(android.view.View.VISIBLE);
+                        }
+                    });
+            } else {
+                photoIv.setVisibility(android.view.View.GONE);
+                initialsTv.setVisibility(android.view.View.VISIBLE);
+            }
+        }
+
+        @Override
+        public void onUnbindViewHolder(androidx.leanback.widget.Presenter.ViewHolder viewHolder) {}
+    }
+    // END PULCIX CUSTOM THEME
 }

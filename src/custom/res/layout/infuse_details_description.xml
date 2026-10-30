@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="480dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- TMDB ClearLogo / Hero Title -->
+    <ImageView
+        android:id="@+id/infuse_clear_logo"
+        android:layout_width="320dp"
+        android:layout_height="84dp"
+        android:scaleType="fitStart"
+        android:adjustViewBounds="true"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/lb_details_description_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/infuse_clear_logo"
+        android:textColor="#FFFFFF"
+        android:textSize="38sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.02"
+        android:ellipsize="end"
+        android:maxLines="2" />
+
+    <!-- Episode Info (for TV Shows) -->
+    <LinearLayout
+        android:id="@+id/episode_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lb_details_description_title"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/episode_sxex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:textColor="#E5E5EA"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/episode_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#E5E5EA"
+            android:textSize="20sp"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <!-- ROW 1: Inline Metadata -->
+    <LinearLayout
+        android:id="@+id/details_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/episode_group"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Duration -->
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:textColor="#E5E5EA"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- Year -->
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:textColor="#E5E5EA"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- Content Rating Badge -->
+        <LinearLayout
+            android:id="@+id/content_rating_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_infuse_content_rating">
+            <TextView
+                android:id="@+id/content_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Trakt Watched Icon -->
+        <ImageView
+            android:id="@+id/trakt_watched"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="12dp"
+            app:srcCompat="@drawable/trakt_watched"
+            android:visibility="gone"
+            android:contentDescription="@null" />
+
+        <!-- Badges Layout (Resolution, Audio, 3D) -->
+        <LinearLayout
+            android:id="@+id/badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout android:id="@+id/badge_resolution_container" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="12dp">
+                <TextView android:id="@+id/badge_resolution" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#E5E5EA" android:textSize="14sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/badge_audio_container" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="12dp">
+                <TextView android:id="@+id/badge_audio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#E5E5EA" android:textSize="14sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/badge_3d_container" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <TextView android:id="@+id/badge_3d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#E5E5EA" android:textSize="14sp" android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ROW 2: Genres -->
+    <TextView
+        android:id="@+id/infuse_genres"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/details_group"
+        android:layout_marginTop="6dp"
+        android:textColor="#CCCCCC"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+    <!-- ROW 3: TMDB Rating -->
+    <LinearLayout
+        android:id="@+id/infuse_rating_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/infuse_genres"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TMDB"
+            android:textColor="#01B4E4"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="6dp" />
+        <TextView
+            android:id="@+id/rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ROW 4: Plot Body -->
+    <TextView
+        android:id="@+id/lb_details_description_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/infuse_rating_group"
+        android:layout_marginTop="12dp"
+        android:maxLines="3"
+        android:ellipsize="end"
+        android:textColor="#D1D1D6"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp" />
+
+</RelativeLayout>

@@ -51,7 +51,13 @@ public class BackdropTask extends AsyncTask<Object, Integer, File> {
         if (DBG) Log.d(TAG, "BackdropTask");
         mContext = activity;
         mMetrics = new DisplayMetrics();
-        mDefaultBackground = new ColorDrawable(backgroundDefaultColor);
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(activity).isInfuseTheme()) {
+            mDefaultBackground = androidx.core.content.ContextCompat.getDrawable(activity, com.archos.mediacenter.video.R.drawable.bg_infuse_details_vignette);
+        } else {
+        // END PULCIX CUSTOM THEME
+            mDefaultBackground = new ColorDrawable(backgroundDefaultColor);
+        }
         activity.getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
         BackgroundManager backgroundManager = BackgroundManager.getInstance(activity);
         if(!backgroundManager.isAttached())

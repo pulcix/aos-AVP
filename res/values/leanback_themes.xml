@@ -116,8 +116,8 @@
         <item name="colorPrimary">@color/theme_primary_infuse</item>
         <item name="colorPrimaryDark">#090a0d</item>
         <item name="colorAccent">@color/theme_accent_infuse</item>
-        <item name="alertDialogTheme">@style/Theme.AlertDialog.Infuse</item>
-    </style>
+    <item name="alertDialogTheme">@style/Theme.AlertDialog.Infuse</item>
+</style>
 
     <!-- Infuse theme variant for leanback preferences -->
     <style name="MyLeanbackTheme.Preferences.Infuse" parent="Theme.Leanback">
