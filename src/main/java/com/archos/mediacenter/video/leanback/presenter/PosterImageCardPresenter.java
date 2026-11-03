@@ -98,8 +98,10 @@ public class PosterImageCardPresenter extends Presenter {
             mCardView.setFocusableInTouchMode(true);
 
             // BEGIN PULCIX CUSTOM THEME
+            boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
+            
             InfuseCardStyler.applyInfuseCardStyle(mCardView);
-            if (mCardView.getMainImageView() != null) {
+            if (isInfuse && mCardView.getMainImageView() != null) {
                 final float radius = 14f * context.getResources().getDisplayMetrics().density;
                 mCardView.getMainImageView().setOutlineProvider(new android.view.ViewOutlineProvider() {
                     @Override
@@ -115,9 +117,6 @@ public class PosterImageCardPresenter extends Presenter {
             mProgressBar = progressGroup.findViewById(R.id.resume_bar);
             // Set progressbar to 0 by default
             mProgressBar.getLayoutParams().width = 0;
-            
-            // BEGIN PULCIX CUSTOM THEME
-            boolean isInfuse = ThemeManager.getInstance(mContext).isInfuseTheme();
             if (isInfuse) {
                 progressGroup.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                 mProgressBar.setBackgroundResource(R.drawable.bg_infuse_resume_bar);

@@ -35,17 +35,8 @@ public class InfuseDialogHelper {
                     windowBg, (int) (16 * density), (int) (16 * density), (int) (16 * density), (int) (16 * density));
             dialog.getWindow().setBackgroundDrawable(insetBg);
             View decor = dialog.getWindow().getDecorView();
-            decor.setBackground(new ColorDrawable(Color.TRANSPARENT)); // Set trasparenza in modo che si veda la Window dietro
-
             if (decor instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) decor;
-                // Forza un padding minimo alla radice (se non è android.R.id.content o un parent superiore nativo che lo distrugge)
-                if (vg.getChildCount() > 0) {
-                    View rootChild = vg.getChildAt(0);
-                    int pad24 = (int) (24 * density);
-                    rootChild.setPadding(pad24, pad24, pad24, pad24);
-                }
-
                 for (int i = 0; i < vg.getChildCount(); i++) {
                     styleDialogViewHierarchyRecursive(vg.getChildAt(i), density);
                 }
@@ -94,19 +85,10 @@ public class InfuseDialogHelper {
         btnBg.setColor(btn.hasFocus() ? 0xFFFF7F02 : 0xFF2C2C2E);
         btn.setBackground(btnBg);
 
-        if (btn.getLayoutParams() instanceof LinearLayout.LayoutParams) {
-            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) btn.getLayoutParams();
-            lp.leftMargin = (int) (8 * density);
-            lp.rightMargin = (int) (8 * density);
-            lp.topMargin = (int) (12 * density);
-            lp.bottomMargin = (int) (12 * density);
-            btn.setLayoutParams(lp);
-        } else if (btn.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+        if (btn.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) btn.getLayoutParams();
             lp.leftMargin = (int) (8 * density);
             lp.rightMargin = (int) (8 * density);
-            lp.topMargin = (int) (12 * density);
-            lp.bottomMargin = (int) (12 * density);
             btn.setLayoutParams(lp);
         }
 
