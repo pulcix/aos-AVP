@@ -29,6 +29,15 @@ public class InfuseCardStyler {
             imageCardView.setInfoAreaBackgroundColor(android.graphics.Color.TRANSPARENT);
             if (imageCardView.getMainImageView() != null) {
                 targetView = imageCardView.getMainImageView();
+                android.widget.ImageView mainImageView = imageCardView.getMainImageView();
+                final float radius = 14f * cardView.getResources().getDisplayMetrics().density;
+                mainImageView.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, android.graphics.Outline outline) {
+                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+                    }
+                });
+                mainImageView.setClipToOutline(true);
             }
         }
         
@@ -90,6 +99,53 @@ public class InfuseCardStyler {
             }
         }
 
+        // STILE PER LEANBACK SMB ITEM (Network Shares, UPnP, Network Shortcuts)
+        View textviews = cardView.findViewById(R.id.textviews);
+        if (textviews != null) {
+            textviews.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            textviews.setBackground(null);
+
+            View primary = textviews.findViewById(R.id.primary);
+            if (primary instanceof android.widget.TextView tv) {
+                tv.setTextColor(0xFFFFFFFF); // Bianco #FFFFFF
+                tv.setTypeface(null, android.graphics.Typeface.BOLD);
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setGravity(android.view.Gravity.CENTER);
+            }
+
+            View secondary = textviews.findViewById(R.id.secondary);
+            if (secondary instanceof android.widget.TextView tv) {
+                tv.setTextColor(0xFF8E8E93); // Grigio #8E8E93
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+                tv.setGravity(android.view.Gravity.CENTER);
+            }
+
+            View smbImage = cardView.findViewById(R.id.image);
+            if (smbImage != null) {
+                smbImage.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                smbImage.setBackground(null);
+                if (smbImage instanceof android.widget.ImageView iv) {
+                    float density = cardView.getResources().getDisplayMetrics().density;
+                    iv.setPadding(0, (int) (16 * density), 0, 0); // paddingTop = 16dp
+                    iv.setScaleType(android.widget.ImageView.ScaleType.CENTER);
+                }
+            }
+
+            float density = cardView.getResources().getDisplayMetrics().density;
+            android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+            cardBg.setColor(0xFF161618);
+            cardBg.setCornerRadius(14 * density);
+            cardBg.setStroke(Math.max(2, (int) (1.5f * density)), 0xFF38383C);
+            cardView.setBackground(cardBg);
+            cardView.setClipToOutline(true);
+
+            if (cardView instanceof ViewGroup vg && vg.getChildCount() > 0) {
+                View inner = vg.getChildAt(0);
+                inner.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                inner.setBackground(null);
+            }
+        }
+
         // ARROTONDAMENTO (14dp) SULLA TARGET VIEW
         // Cerca R.id.image_container (usato da BoxItemPresenter / IconItemPresenter)
         View imageContainer = cardView.findViewById(R.id.image_container);
@@ -143,6 +199,20 @@ public class InfuseCardStyler {
             androidx.core.view.ViewCompat.setTranslationZ(finalTargetView, 0f);
 
             if (hasFocus) {
+                // Reset siblings scale to 1.0f if they do not have focus
+                if (v.getParent() instanceof ViewGroup) {
+                    ViewGroup parent = (ViewGroup) v.getParent();
+                    for (int i = 0; i < parent.getChildCount(); i++) {
+                        View sibling = parent.getChildAt(i);
+                        if (sibling != v && !sibling.hasFocus()) {
+                            sibling.animate().cancel();
+                            sibling.setScaleX(1.0f);
+                            sibling.setScaleY(1.0f);
+                            sibling.setTranslationZ(0f);
+                        }
+                    }
+                }
+
                 finalTargetView.setForeground(ContextCompat.getDrawable(v.getContext(), R.drawable.bg_card_stroke_inset));
                 v.animate()
                     .scaleX(1.15f)
@@ -162,6 +232,39 @@ public class InfuseCardStyler {
                     .start();
             }
         });
+
+        if (cardView.getTag(R.id.root) == null) {
+            cardView.setTag(R.id.root, Boolean.TRUE);
+            cardView.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
+                bindCardState(cardView);
+            });
+        }
+
+        bindCardState(cardView);
+    }
+
+    public static void bindCardState(View cardView) {
+        if (cardView == null) return;
+        if (!ThemeManager.getInstance(cardView.getContext()).isInfuseTheme()) return;
+
+        cardView.animate().cancel();
+        boolean hasFocus = cardView.hasFocus() || cardView.isSelected();
+        float scale = hasFocus ? 1.15f : 1.0f;
+        cardView.setScaleX(scale);
+        cardView.setScaleY(scale);
+        cardView.setTranslationZ(0f);
+
+        if (hasFocus && cardView.getParent() instanceof ViewGroup parent) {
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                View sibling = parent.getChildAt(i);
+                if (sibling != cardView && !sibling.hasFocus()) {
+                    sibling.animate().cancel();
+                    sibling.setScaleX(1.0f);
+                    sibling.setScaleY(1.0f);
+                    sibling.setTranslationZ(0f);
+                }
+            }
+        }
     }
 }
 // END PULCIX CUSTOM THEME

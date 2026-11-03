@@ -48,6 +48,15 @@ public class VideoDetailsActivity extends LeanbackActivity {
             getWindow().setEnterTransition(new Slide(direction));
         }
 
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(this).isInfuseTheme()) {
+            getWindow().setEnterTransition(new android.transition.Fade(android.transition.Fade.IN).setDuration(180));
+            getWindow().setReturnTransition(new android.transition.Fade(android.transition.Fade.OUT).setDuration(150));
+            getWindow().setSharedElementEnterTransition(null);
+            getWindow().setSharedElementReturnTransition(null);
+        }
+        // END PULCIX CUSTOM THEME
+
         setContentView(R.layout.androidtv_details_activity);
     }
 

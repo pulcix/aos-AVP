@@ -76,4 +76,12 @@ public class FTPServerCredentialsDialog extends ServerCredentialsDialog {
         if (log.isDebugEnabled()) log.debug("createUri: -> {}", uriB);
         return uriB.toString();
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getDialog() != null) {
+            com.archos.mediacenter.video.utils.InfuseDialogHelper.applyInfuseStyleToAlertDialog(getDialog(), getActivity());
+        }
+    }
 }

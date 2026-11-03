@@ -34,19 +34,19 @@
                 <!-- Cerchio 1 -->
                 <path
                     android:strokeColor="#FFFFFF"
-                    android:strokeWidth="1.5"
+                    android:strokeWidth="1.2"
                     android:pathData="M4.47,7.64 c0,-1.48 1.2,-2.68 2.68,-2.68 s2.68,1.2 2.68,2.68 s-1.2,2.68 -2.68,2.68 S4.47,9.12 4.47,7.64" />
 
                 <!-- Cerchio 2 -->
                 <path
                     android:strokeColor="#FFFFFF"
-                    android:strokeWidth="1.5"
+                    android:strokeWidth="1.2"
                     android:pathData="M9.82,6.77 c0,-1.97 1.59,-3.56 3.56,-3.56 s3.56,1.59 3.56,3.56 s-1.59,3.56 -3.56,3.56 S9.82,8.74 9.82,6.77" />
 
                 <!-- Corpo centrale -->
                 <path
                     android:strokeColor="#FFFFFF"
-                    android:strokeWidth="1.5"
+                    android:strokeWidth="1.2"
                     android:strokeLineJoin="round"
                     android:pathData="M6.00,12.26 h9.38 c0.86,0 1.56,0.7 1.56,1.56 v3.91 c0,0.86 -0.7,1.56 -1.56,1.56 H6.00 c-0.86,0 -1.56,-0.7 -1.56,-1.56 v-3.91 c0,-0.86 0.7,-1.56 1.56,-1.56 z" />
 
@@ -63,14 +63,14 @@
                 <!-- Lente laterale -->
                 <path
                     android:strokeColor="#FFFFFF"
-                    android:strokeWidth="1.5"
+                    android:strokeWidth="1.2"
                     android:strokeLineJoin="round"
                     android:pathData="M16.95,14.21 L20.64,12.26 v7.03 l-3.69,-1.95 z" />
 
                 <!-- Linea verticale -->
                 <path
                     android:strokeColor="#FFFFFF"
-                    android:strokeWidth="1.5"
+                    android:strokeWidth="1.2"
                     android:pathData="M13.38,6.77 L13.38,12.26" />
 
             </group>

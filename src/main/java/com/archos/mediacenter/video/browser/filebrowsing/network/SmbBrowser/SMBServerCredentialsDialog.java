@@ -60,4 +60,11 @@ public class SMBServerCredentialsDialog extends ServerCredentialsDialog {
         return mUri.toString();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getDialog() != null) {
+            com.archos.mediacenter.video.utils.InfuseDialogHelper.applyInfuseStyleToAlertDialog(getDialog(), getActivity());
+        }
+    }
 }

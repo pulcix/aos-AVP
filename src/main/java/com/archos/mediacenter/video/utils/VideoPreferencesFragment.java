@@ -44,6 +44,7 @@ public class VideoPreferencesFragment extends PreferenceFragmentCompat {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        com.archos.mediacenter.video.leanback.settings.InfuseSettingsStyleHelper.stylePreferenceFragment(this);
         // Adjust padding for edge-to-edge
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             view.setOnApplyWindowInsetsListener((v, insets) -> {

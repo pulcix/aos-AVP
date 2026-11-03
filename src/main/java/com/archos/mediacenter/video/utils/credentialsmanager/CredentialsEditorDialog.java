@@ -88,6 +88,14 @@ public class CredentialsEditorDialog extends DialogFragment {
         dialog.setOnDismissListener(mOnDismissListener);
         return dialog;
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getDialog() != null) {
+            com.archos.mediacenter.video.utils.InfuseDialogHelper.applyInfuseStyleToAlertDialog(getDialog(), getActivity());
+        }
+    }
+
     public void setOnModifyListener(OnModifyListener onModifyListener){
         mOnModifyListener = onModifyListener;
     }

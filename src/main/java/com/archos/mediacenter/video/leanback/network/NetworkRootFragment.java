@@ -65,6 +65,7 @@ import com.archos.mediacenter.video.leanback.filebrowsing.ListingActivity;
 import com.archos.mediacenter.video.leanback.network.NetworkShortcutDetailsActivity;
 import com.archos.mediacenter.video.leanback.network.rescan.RescanActivity;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
 import com.archos.mediacenter.video.leanback.presenter.NetworkShortcutPresenter;
 import com.archos.mediacenter.video.leanback.presenter.RescanBoxItemPresenter;
 import com.archos.mediacenter.video.leanback.presenter.SmbSharePresenter;
@@ -230,7 +231,16 @@ public class NetworkRootFragment extends BrowseSupportFragment {
     }
 
     private void loadRows() {
-        mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        boolean isInfuse = ThemeManager.getInstance(getActivity()).isInfuseTheme();
+        RowPresenter listRowPresenter;
+        if (isInfuse) {
+            CustomDpadListRowPresenter dpadPresenter = new CustomDpadListRowPresenter();
+            dpadPresenter.setOnItemViewClickedListener(mClickListener);
+            listRowPresenter = dpadPresenter;
+        } else {
+            listRowPresenter = new ListRowPresenter();
+        }
+        mRowsAdapter = new ArrayObjectAdapter(listRowPresenter);
         setAdapter(mRowsAdapter);
 
         mRowsAdapter.clear();

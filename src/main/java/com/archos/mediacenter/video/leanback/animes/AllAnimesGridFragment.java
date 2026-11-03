@@ -277,23 +277,29 @@ public class AllAnimesGridFragment extends MyVerticalGridFragment implements Loa
             @Override
             public void onClick(View view) {
                 mSortOrderItem = AnimesSortOrderEntry.sortOrder2Item(mSortOrder, sortOrderIndexer);
-                new AlertDialog.Builder(getActivity())
-                        .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (mSortOrderItem != which) {
-                                    mSortOrderItem = which;
-                                    mSortOrder = AnimesSortOrderEntry.item2SortOrder(mSortOrderItem, sortOrderIndexer);
-                                    // Save the sort mode
-                                    mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).commit();
-                                    Bundle args = new Bundle();
-                                    args.putString("sort", mSortOrder);
-                                    args.putBoolean("showWatched", mShowWatched);
-                                    LoaderManager.getInstance(AllAnimesGridFragment.this).restartLoader(0, args, AllAnimesGridFragment.this);
-                                }
-                                dialog.dismiss();
-                            }
-                        })
-                        .create().show();
+                DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (mSortOrderItem != which) {
+                            mSortOrderItem = which;
+                            mSortOrder = AnimesSortOrderEntry.item2SortOrder(mSortOrderItem, sortOrderIndexer);
+                            // Save the sort mode
+                            mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).commit();
+                            Bundle args = new Bundle();
+                            args.putString("sort", mSortOrder);
+                            args.putBoolean("showWatched", mShowWatched);
+                            LoaderManager.getInstance(AllAnimesGridFragment.this).restartLoader(0, args, AllAnimesGridFragment.this);
+                        }
+                        dialog.dismiss();
+                    }
+                };
+
+                if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    com.archos.mediacenter.video.utils.InfuseDialogHelper.showInfuseSingleChoiceDialog(getActivity(), null, mSortOrderEntries, mSortOrderItem, listener);
+                } else {
+                    new AlertDialog.Builder(getActivity())
+                            .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, listener)
+                            .create().show();
+                }
             }
         };
         getTitleView().setOnOrb3ClickedListener(sortClickListener);

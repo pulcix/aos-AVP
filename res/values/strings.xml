@@ -1102,4 +1102,7 @@
     <string name="external_player_service_description">Nova Video Player provides content for an external player</string>
     <string name="stop">Stop</string>
 
+    <string name="infuse_related_header">Suggestions / Related</string>
+    <string name="infuse_cast_crew_header">Cast and Crew</string>
+
 </resources>

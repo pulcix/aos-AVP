@@ -102,23 +102,51 @@ public class BoxItemPresenter extends Presenter {
                 case ANIME_COLLECTIONS:
                     customDrawable = R.drawable.infuse_cover_collections;
                     break;
-                // Network & Files row: restore original Nova icons (do not override)
                 case NETWORK:
                 case FTP:
+                    customDrawable = R.drawable.ic_infuse_nas_outline;
+                    break;
                 case USB:
                 case SDCARD:
                 case FOLDERS:
+                case OTHER:
                 case NON_SCRAPED_VIDEOS:
-                    customDrawable = 0;
+                    customDrawable = R.drawable.ic_infuse_folder_outline;
+                    break;
+                case VIDEOS_BY_LISTS:
+                    customDrawable = R.drawable.ic_infuse_playlist_outline;
                     break;
             }
         }
 
         if (customDrawable != 0) {
+            boolean isOutlineIcon = (customDrawable == R.drawable.ic_infuse_nas_outline ||
+                    customDrawable == R.drawable.ic_infuse_folder_outline ||
+                    customDrawable == R.drawable.ic_infuse_playlist_outline);
+
             vh.getImageView().setImageResource(customDrawable);
-            vh.getImageView().setScaleType(ImageView.ScaleType.FIT_XY); // Expand to fill 16:9 box correctly!
-            vh.mImageViewContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            vh.mImageViewContainer.setBackground(null);
+
+            ViewGroup.LayoutParams imgLp = vh.getImageView().getLayoutParams();
+            if (imgLp != null) {
+                if (isOutlineIcon) {
+                    float density = vh.mRoot.getResources().getDisplayMetrics().density;
+                    int iconSize = (int) (48 * density);
+                    imgLp.width = iconSize;
+                    imgLp.height = iconSize;
+                    if (imgLp instanceof android.widget.FrameLayout.LayoutParams) {
+                        ((android.widget.FrameLayout.LayoutParams) imgLp).gravity = android.view.Gravity.CENTER;
+                    }
+                    vh.getImageView().setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    vh.mImageViewContainer.setBackgroundColor(ThemeManager.getInstance(vh.mCard.getContext()).getLeanbackHeaderColor());
+                } else {
+                    imgLp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    imgLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    vh.getImageView().setScaleType(ImageView.ScaleType.FIT_XY); // Expand to fill 16:9 box correctly!
+                    vh.mImageViewContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    vh.mImageViewContainer.setBackground(null);
+                }
+                vh.getImageView().setLayoutParams(imgLp);
+            }
             
             // Applica l'aspect ratio 200x130dp programmato
             ViewGroup.LayoutParams lp = vh.mRoot.getLayoutParams();
@@ -147,11 +175,17 @@ public class BoxItemPresenter extends Presenter {
 
         if (isInfuseTheme) {
             InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
+            InfuseCardStyler.bindCardState(vh.mCard);
+            vh.mCard.post(() -> InfuseCardStyler.bindCardState(vh.mCard));
+            vh.mCard.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mCard), 80);
         }
         // END PULCIX CUSTOM THEME
     }
 
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
+        if (viewHolder instanceof BoxViewHolder) {
+            InfuseCardStyler.bindCardState(((BoxViewHolder) viewHolder).mCard);
+        }
     }
 }

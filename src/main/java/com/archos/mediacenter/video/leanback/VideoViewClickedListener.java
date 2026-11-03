@@ -38,6 +38,7 @@ import com.archos.mediacenter.video.leanback.details.VideoDetailsFragment;
 import com.archos.mediacenter.video.leanback.presenter.ListPresenter;
 import com.archos.mediacenter.video.leanback.tvshow.TvshowActivity;
 import com.archos.mediacenter.video.leanback.tvshow.TvshowFragment;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 /**
  * Created by vapillon on 13/04/15.
@@ -82,7 +83,8 @@ public class VideoViewClickedListener implements OnItemViewClickedListener {
         } else if (itemViewHolder instanceof ListPresenter.ListViewHolder){
             sourceView = ((ListPresenter.ListViewHolder)itemViewHolder).getImageView();
         }
-        if(animate) {
+        boolean isInfuse = ThemeManager.getInstance(activity).isInfuseTheme();
+        if(animate && !isInfuse && sourceView != null) {
             Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     activity,
                     sourceView,
@@ -98,42 +100,43 @@ public class VideoViewClickedListener implements OnItemViewClickedListener {
                 activity.startActivity(intent);
             else
                 fragment.startActivityForResult(intent, requestCode);
+            if (isInfuse) activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         }
     }
 
     public static void showTvshowDetails(Activity activity, Tvshow tvshow, Presenter.ViewHolder itemViewHolder) {
         Intent intent = new Intent(activity, TvshowActivity.class);
         intent.putExtra(TvshowFragment.EXTRA_TVSHOW, tvshow);
-        View sourceView = null;
-        Bundle bundle = null;
-        if (itemViewHolder.view instanceof ImageCardView) {
-            sourceView = ((ImageCardView) itemViewHolder.view).getMainImageView();
-            bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
+        boolean isInfuse = ThemeManager.getInstance(activity).isInfuseTheme();
+        if (!isInfuse && itemViewHolder.view instanceof ImageCardView) {
+            View sourceView = ((ImageCardView) itemViewHolder.view).getMainImageView();
+            Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     activity,
                     sourceView,
                     TvshowFragment.SHARED_ELEMENT_NAME).toBundle();
             activity.startActivity(intent, bundle);
         }
-        else if (itemViewHolder.view instanceof BaseCardView) {
+        else {
             activity.startActivity(intent);
+            if (isInfuse) activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         }
     }
 
     public static void showCollectionDetails(Activity activity, Collection collection, Presenter.ViewHolder itemViewHolder) {
         Intent intent = new Intent(activity, CollectionActivity.class);
         intent.putExtra(CollectionFragment.EXTRA_COLLECTION, collection);
-        View sourceView = null;
-        Bundle bundle = null;
-        if (itemViewHolder.view instanceof ImageCardView) {
-            sourceView = ((ImageCardView) itemViewHolder.view).getMainImageView();
-            bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
+        boolean isInfuse = ThemeManager.getInstance(activity).isInfuseTheme();
+        if (!isInfuse && itemViewHolder.view instanceof ImageCardView) {
+            View sourceView = ((ImageCardView) itemViewHolder.view).getMainImageView();
+            Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     activity,
                     sourceView,
                     CollectionFragment.SHARED_ELEMENT_NAME).toBundle();
             activity.startActivity(intent, bundle);
         }
-        else if (itemViewHolder.view instanceof BaseCardView) {
+        else {
             activity.startActivity(intent);
+            if (isInfuse) activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         }
     }
 }

@@ -277,29 +277,37 @@ public class AllCollectionsGridFragment extends MyVerticalGridFragment implement
         });
 
         // Set third orb action
-        getTitleView().setOnOrb3ClickedListener(new View.OnClickListener() {
+        View.OnClickListener sortClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSortOrderItem = CollectionsSortOrderEntry.sortOrder2Item(mSortOrder, sortOrderIndexer);
-                new AlertDialog.Builder(getActivity())
-                        .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (mSortOrderItem != which) {
-                                    mSortOrderItem = which;
-                                    mSortOrder = CollectionsSortOrderEntry.item2SortOrder(mSortOrderItem, sortOrderIndexer);
-                                    // Save the sort mode
-                                    mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).apply();
-                                    Bundle args = new Bundle();
-                                    args.putString("sort", mSortOrder);
-                                    args.putBoolean("collectionWatched", mCollectionWatched);
-                                    LoaderManager.getInstance(AllCollectionsGridFragment.this).restartLoader(ALL_COLLECTIONS_LOADER_ID, args, AllCollectionsGridFragment.this);
-                                }
-                                dialog.dismiss();
-                            }
-                        })
-                        .create().show();
+                DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (mSortOrderItem != which) {
+                            mSortOrderItem = which;
+                            mSortOrder = CollectionsSortOrderEntry.item2SortOrder(mSortOrderItem, sortOrderIndexer);
+                            // Save the sort mode
+                            mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).apply();
+                            Bundle args = new Bundle();
+                            args.putString("sort", mSortOrder);
+                            args.putBoolean("collectionWatched", mCollectionWatched);
+                            LoaderManager.getInstance(AllCollectionsGridFragment.this).restartLoader(ALL_COLLECTIONS_LOADER_ID, args, AllCollectionsGridFragment.this);
+                        }
+                        dialog.dismiss();
+                    }
+                };
+
+                if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                    com.archos.mediacenter.video.utils.InfuseDialogHelper.showInfuseSingleChoiceDialog(getActivity(), null, mSortOrderEntries, mSortOrderItem, listener);
+                } else {
+                    new AlertDialog.Builder(getActivity())
+                            .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, listener)
+                            .create().show();
+                }
             }
-        });
+        };
+        getTitleView().setOnOrb3ClickedListener(sortClickListener);
+        getTitleView().setOnSortClickedListener(sortClickListener);
 
         // Set fourth orb action
         getTitleView().setOnOrb4ClickedListener(new View.OnClickListener() {

@@ -99,6 +99,16 @@ public class PosterImageCardPresenter extends Presenter {
 
             // BEGIN PULCIX CUSTOM THEME
             InfuseCardStyler.applyInfuseCardStyle(mCardView);
+            if (mCardView.getMainImageView() != null) {
+                final float radius = 14f * context.getResources().getDisplayMetrics().density;
+                mCardView.getMainImageView().setOutlineProvider(new android.view.ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, android.graphics.Outline outline) {
+                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+                    }
+                });
+                mCardView.getMainImageView().setClipToOutline(true);
+            }
             // END PULCIX CUSTOM THEME
 
             View progressGroup = LayoutInflater.from(mContext).inflate(R.layout.leanback_resume, mCardView, false);
@@ -243,6 +253,11 @@ public class PosterImageCardPresenter extends Presenter {
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
         VideoViewHolder vh = (VideoViewHolder)viewHolder;
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            InfuseCardStyler.bindCardState(vh.mCardView);
+            vh.mCardView.post(() -> InfuseCardStyler.bindCardState(vh.mCardView));
+            vh.mCardView.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mCardView), 80);
+        }
 
         if (item instanceof Video) {
             bindVideo(vh, (Video) item);
@@ -467,6 +482,9 @@ public class PosterImageCardPresenter extends Presenter {
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
        ((VideoViewHolder)viewHolder).getImageCardView().setMainImage(null);
+       if (viewHolder instanceof VideoViewHolder) {
+           InfuseCardStyler.bindCardState(((VideoViewHolder) viewHolder).mCardView);
+       }
     }
 
     public class PicassoImageCardViewTarget implements Target {

@@ -129,16 +129,20 @@ public class IconItemPresenter extends Presenter {
         ViewHolder vh = (ViewHolder)viewHolder;
         Icon icon = (Icon)item;
         vh.mImageView.setImageResource(icon.getIconResId());
-vh.mImageView.setImageResource(icon.getIconResId());
         vh.mTitleView.setText(icon.getName());
 
         // BEGIN PULCIX CUSTOM THEME
-        // BEGIN PULCIX CUSTOM THEME
         InfuseCardStyler.applyInfuseCardStyle(vh.mBaseCard);
+        InfuseCardStyler.bindCardState(vh.mBaseCard);
+        vh.mBaseCard.post(() -> InfuseCardStyler.bindCardState(vh.mBaseCard));
+        vh.mBaseCard.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mBaseCard), 80);
         // END PULCIX CUSTOM THEME
     }
 
     @Override
     public void onUnbindViewHolder(Presenter.ViewHolder viewHolder) {
+        if (viewHolder instanceof ViewHolder) {
+            InfuseCardStyler.bindCardState(((ViewHolder) viewHolder).mBaseCard);
+        }
     }
 }

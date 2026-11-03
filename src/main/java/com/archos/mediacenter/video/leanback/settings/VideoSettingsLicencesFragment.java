@@ -43,6 +43,8 @@ public class VideoSettingsLicencesFragment extends LeanbackSettingsFragmentCompa
     public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        InfuseSettingsStyleHelper.styleSettingsFragment(this);
+
         // Note: Don't apply window theme for leanback preferences
         // The activity uses MyLeanbackTheme.Preferences which has translucent window
         // Applying a background would break the overlay appearance
@@ -77,9 +79,10 @@ public class VideoSettingsLicencesFragment extends LeanbackSettingsFragmentCompa
         @Override
         public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
+            InfuseSettingsStyleHelper.stylePreferenceFragment(this);
             // Apply theme background color to the preference list (RecyclerView)
             // This colors only the right-side content area, not the entire window
-            if (getListView() != null) {
+            if (getListView() != null && !ThemeManager.getInstance(requireContext()).isInfuseTheme()) {
                 getListView().setBackgroundColor(ThemeManager.getInstance(requireContext()).getLeanbackBackgroundColor());
             }
             // Note: Header color is now handled by the theme (MyLeanbackTheme.Preferences.Black)

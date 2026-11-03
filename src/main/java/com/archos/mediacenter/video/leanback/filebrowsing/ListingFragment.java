@@ -15,6 +15,8 @@
 package com.archos.mediacenter.video.leanback.filebrowsing;
 
 import androidx.appcompat.app.AlertDialog;
+import android.content.DialogInterface;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.loader.app.LoaderManager;
@@ -256,23 +258,34 @@ public abstract class ListingFragment extends MyVerticalGridFragment implements 
         getTitleView().setOrb4IconResId(R.drawable.orb_sort);
         if (log.isDebugEnabled()) log.debug("onViewCreated: mSortOrder={} mSortOrderItem={}", mSortOrder, mSortOrderItem);
 
-        getTitleView().setOnOrb4ClickedListener(view1 -> new AlertDialog.Builder(getActivity())
-                .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, (dialog, which) -> {
-                    if (log.isDebugEnabled()) log.debug("onViewCreated:onClick mSortOrderItem {} -> {}", mSortOrderItem, which);
-                    if (mSortOrderItem != which) {
-                        mSortOrderItem = which;
-                        mSortOrder = itemid2sortorder(mSortOrderItem);
-                        // Save the sort mode
-                        mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).apply();
-                        Bundle args = new Bundle();
-                        args.putString("sort", mSortOrder);
-                        initGridOrList(); // reinit all mFilesAdapter too
-                        startListing(mUri);
-                        //LoaderManager.getInstance(ListingFragment.this).restartLoader(0, args, ListingFragment.this);
-                    }
-                    dialog.dismiss();
-                })
-                .create().show());
+        View.OnClickListener sortClickListener = view1 -> {
+            DialogInterface.OnClickListener listener = (dialog, which) -> {
+                if (log.isDebugEnabled()) log.debug("onViewCreated:onClick mSortOrderItem {} -> {}", mSortOrderItem, which);
+                if (mSortOrderItem != which) {
+                    mSortOrderItem = which;
+                    mSortOrder = itemid2sortorder(mSortOrderItem);
+                    // Save the sort mode
+                    mPrefs.edit().putString(SORT_PARAM_KEY, mSortOrder).apply();
+                    Bundle args = new Bundle();
+                    args.putString("sort", mSortOrder);
+                    initGridOrList(); // reinit all mFilesAdapter too
+                    startListing(mUri);
+                    //LoaderManager.getInstance(ListingFragment.this).restartLoader(0, args, ListingFragment.this);
+                }
+                dialog.dismiss();
+            };
+
+            if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+                com.archos.mediacenter.video.utils.InfuseDialogHelper.showInfuseSingleChoiceDialog(getActivity(), null, mSortOrderEntries, mSortOrderItem, listener);
+            } else {
+                new AlertDialog.Builder(getActivity())
+                        .setSingleChoiceItems(mSortOrderEntries, mSortOrderItem, listener)
+                        .create().show();
+            }
+        };
+
+        getTitleView().setOnOrb4ClickedListener(sortClickListener);
+        getTitleView().setOnSortClickedListener(sortClickListener);
     }
 
     @Override

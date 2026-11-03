@@ -39,9 +39,22 @@ import com.archos.mediacenter.video.R;
 public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewRowPresenter {
 
 
+    public interface OnBindInfuseViewListener {
+        void onBindInfuseView(View rowView);
+    }
+
     private final Presenter mDetailsPresenter;
     private ViewHolder mViewHolder;
     private boolean mHideActions;
+    private OnBindInfuseViewListener mOnBindInfuseViewListener;
+
+    public void setOnBindInfuseViewListener(OnBindInfuseViewListener listener) {
+        mOnBindInfuseViewListener = listener;
+    }
+
+    public View getOverviewRowView() {
+        return mViewHolder != null ? mViewHolder.view : null;
+    }
 
     /**
      * Constructor for a DetailsOverviewRowPresenter.
@@ -72,9 +85,13 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
         if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(holder.view.getContext()).isInfuseTheme()) {
             setFacet(androidx.leanback.widget.ItemAlignmentFacet.class, null);
             applyInfuseZeroMargins(mViewHolder);
-            if (item instanceof DetailsOverviewRow) {
-                DetailsOverviewRow row = (DetailsOverviewRow) item;
-                bindInfuseActions(mViewHolder, row.getActionsAdapter());
+            if (mOnBindInfuseViewListener != null) {
+                mOnBindInfuseViewListener.onBindInfuseView(holder.view);
+                holder.view.post(() -> {
+                    if (mOnBindInfuseViewListener != null) {
+                        mOnBindInfuseViewListener.onBindInfuseView(holder.view);
+                    }
+                });
             }
         }
         // END PULCIX CUSTOM THEME
@@ -418,6 +435,9 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
         View actionsBg = frame != null ? frame.findViewById(androidx.leanback.R.id.details_overview_actions_background) : null;
         if (actionsBg != null) {
             actionsBg.setPadding(0, 0, 0, 0);
+            if (actionsBg.getLayoutParams() != null) {
+                actionsBg.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            }
             if (actionsBg.getLayoutParams() instanceof android.widget.RelativeLayout.LayoutParams) {
                 android.widget.RelativeLayout.LayoutParams rlp = (android.widget.RelativeLayout.LayoutParams) actionsBg.getLayoutParams();
                 rlp.removeRule(android.widget.RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -458,173 +478,36 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
                     actionsGrid.setLayoutParams(lp);
                 }
             }
-            View infuseContainer = actionsBg.findViewById(R.id.infuse_actions_container);
-            if (infuseContainer != null) {
-                infuseContainer.setPadding((int) (6 * density), 0, 0, 0);
-                if (infuseContainer.getLayoutParams() instanceof MarginLayoutParams) {
-                    MarginLayoutParams lp = (MarginLayoutParams) infuseContainer.getLayoutParams();
-                    lp.setMarginStart(0);
-                    lp.leftMargin = 0;
-                    lp.setMarginEnd(0);
-                    lp.rightMargin = 0;
-                    infuseContainer.setLayoutParams(lp);
-                }
+        if (actionsBg != null && actionsBg.getLayoutParams() != null) {
+            actionsBg.setVisibility(View.VISIBLE);
+            actionsBg.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+            actionsBg.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        }
+        View infuseContainer = actionsBg != null ? actionsBg.findViewById(R.id.infuse_actions_container) : null;
+        if (infuseContainer != null && infuseContainer.getLayoutParams() != null) {
+            infuseContainer.setVisibility(View.VISIBLE);
+            infuseContainer.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            infuseContainer.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            infuseContainer.setPadding((int) (6 * density), 0, 0, 0);
+            if (infuseContainer.getLayoutParams() instanceof MarginLayoutParams) {
+                MarginLayoutParams lp = (MarginLayoutParams) infuseContainer.getLayoutParams();
+                lp.setMarginStart(0);
+                lp.leftMargin = 0;
+                lp.setMarginEnd(0);
+                lp.rightMargin = 0;
+                infuseContainer.setLayoutParams(lp);
+            }
+            View iconRow = infuseContainer.findViewById(R.id.infuse_icon_actions);
+            if (iconRow != null && iconRow.getLayoutParams() != null) {
+                iconRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            }
+            View primaryRow = infuseContainer.findViewById(R.id.infuse_primary_actions);
+            if (primaryRow != null && primaryRow.getLayoutParams() != null) {
+                primaryRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
             }
         }
     }
+}
 
-    private void bindInfuseActions(ViewHolder viewHolder, ObjectAdapter adapter) {
-        if (viewHolder == null || viewHolder.view == null) return;
-
-        View nativeGrid = viewHolder.view.findViewById(androidx.leanback.R.id.details_overview_actions);
-        if (nativeGrid != null) {
-            nativeGrid.setVisibility(View.GONE);
-        }
-
-        View infuseContainer = viewHolder.view.findViewById(R.id.infuse_actions_container);
-        if (infuseContainer == null) return;
-
-        infuseContainer.setVisibility(View.VISIBLE);
-
-        ViewGroup iconRow = infuseContainer.findViewById(R.id.infuse_icon_actions);
-        ViewGroup primaryRow = infuseContainer.findViewById(R.id.infuse_primary_actions);
-
-        if (iconRow == null || primaryRow == null) return;
-        if (iconRow.getChildCount() > 0) return; // Managed by VideoDetailsFragment
-
-        iconRow.removeAllViews();
-        primaryRow.removeAllViews();
-
-        if (adapter == null) return;
-
-        Context context = viewHolder.view.getContext();
-        float density = context.getResources().getDisplayMetrics().density;
-
-        int iconWidth = (int) (54 * density);
-        int iconHeight = (int) (38 * density);
-        int iconMarginEnd = (int) (14 * density);
-
-        int primaryWidth = (int) (200 * density);
-        int primaryHeight = (int) (46 * density);
-        int primaryMarginEnd = (int) (12 * density);
-
-        LayoutInflater inflater = LayoutInflater.from(context);
-
-        View firstPrimaryView = null;
-        View firstIconView = null;
-
-        for (int i = 0; i < adapter.size(); i++) {
-            Object item = adapter.get(i);
-            if (item instanceof Action) {
-                Action action = (Action) item;
-                long id = action.getId();
-
-                if (id == VideoActionAdapter.ACTION_PLAY || 
-                    id == VideoActionAdapter.ACTION_RESUME || 
-                    id == VideoActionAdapter.ACTION_LOCAL_RESUME || 
-                    id == VideoActionAdapter.ACTION_REMOTE_RESUME ||
-                    id == VideoActionAdapter.ACTION_PLAY_FROM_BEGIN ||
-                    id == VideoActionAdapter.ACTION_NEXT_EPISODE ||
-                    id == VideoActionAdapter.ACTION_LIST_EPISODES) {
-
-                    View v = inflater.inflate(R.layout.infuse_action_primary_pill, primaryRow, false);
-                    MarginLayoutParams lp = new MarginLayoutParams(primaryWidth, primaryHeight);
-                    lp.setMarginEnd(primaryMarginEnd);
-                    v.setLayoutParams(lp);
-
-                    TextView tv = v.findViewById(R.id.text);
-                    if (tv != null) tv.setText(action.getLabel1());
-                    v.setTag(action);
-                    v.setFocusable(true);
-                    v.setFocusableInTouchMode(false);
-                    v.setOnClickListener(v1 -> {
-                        if (getOnActionClickedListener() != null) {
-                            getOnActionClickedListener().onActionClicked(action);
-                        }
-                    });
-                    v.setOnFocusChangeListener((view, hasFocus) -> {
-                        if (hasFocus) {
-                            view.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).start();
-                        } else {
-                            view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start();
-                        }
-                    });
-                    primaryRow.addView(v);
-                    if (firstPrimaryView == null) {
-                        firstPrimaryView = v;
-                    }
-                } else {
-                    View v = inflater.inflate(R.layout.infuse_action_icon_pill, iconRow, false);
-                    MarginLayoutParams lp = new MarginLayoutParams(iconWidth, iconHeight);
-                    lp.setMarginEnd(iconMarginEnd);
-                    v.setLayoutParams(lp);
-
-                    ImageView iv = v.findViewById(R.id.icon);
-                    if (iv != null) {
-                        if (id == VideoActionAdapter.ACTION_MARK_AS_WATCHED) {
-                            iv.setImageResource(R.drawable.trakt_watched);
-                        } else if (id == VideoActionAdapter.ACTION_MARK_AS_NOT_WATCHED) {
-                            iv.setImageResource(R.drawable.ic_eye_outline);
-                        } else if (id == VideoActionAdapter.ACTION_UNSCRAP) {
-                            iv.setImageResource(R.drawable.ic_infuse_unscrap);
-                        } else if (id == VideoActionAdapter.ACTION_SCRAP) {
-                            iv.setImageResource(R.drawable.ic_infuse_refresh);
-                        } else if (id == VideoActionAdapter.ACTION_ADD_TO_LIST) {
-                            iv.setImageResource(R.drawable.ic_infuse_bookmark);
-                        } else if (id == VideoActionAdapter.ACTION_UNINDEX || id == VideoActionAdapter.ACTION_HIDE || id == VideoActionAdapter.ACTION_REMOVE_FROM_LIST) {
-                            iv.setImageResource(R.drawable.ic_infuse_minus_circle);
-                        } else if (id == VideoActionAdapter.ACTION_DELETE || id == VideoActionAdapter.ACTION_CONFIRM_DELETE) {
-                            iv.setImageResource(R.drawable.ic_infuse_delete);
-                        } else if (id == VideoActionAdapter.ACTION_INDEX) {
-                            iv.setImageResource(R.drawable.ic_infuse_info);
-                        } else {
-                            iv.setImageResource(R.drawable.ic_infuse_settings);
-                        }
-                    }
-                    v.setTag(action);
-                    v.setFocusable(true);
-                    v.setFocusableInTouchMode(false);
-                    v.setOnClickListener(v1 -> {
-                        if (getOnActionClickedListener() != null) {
-                            getOnActionClickedListener().onActionClicked(action);
-                        }
-                    });
-                    v.setOnFocusChangeListener((view, hasFocus) -> {
-                        if (hasFocus) {
-                            view.animate().scaleX(1.08f).scaleY(1.08f).setDuration(150).start();
-                        } else {
-                            view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start();
-                        }
-                    });
-                    iconRow.addView(v);
-                    if (firstIconView == null) {
-                        firstIconView = v;
-                    }
-                }
-            }
-        }
-
-        // D-Pad navigation links between rows
-        if (firstIconView != null) {
-            final int iconId = firstIconView.getId() != View.NO_ID ? firstIconView.getId() : View.generateViewId();
-            firstIconView.setId(iconId);
-            for (int j = 0; j < primaryRow.getChildCount(); j++) {
-                primaryRow.getChildAt(j).setNextFocusUpId(iconId);
-            }
-        }
-        if (firstPrimaryView != null) {
-            final int primaryId = firstPrimaryView.getId() != View.NO_ID ? firstPrimaryView.getId() : View.generateViewId();
-            firstPrimaryView.setId(primaryId);
-            for (int j = 0; j < iconRow.getChildCount(); j++) {
-                iconRow.getChildAt(j).setNextFocusDownId(primaryId);
-            }
-        }
-
-        // Focus first primary button
-        if (firstPrimaryView != null) {
-            final View toFocus = firstPrimaryView;
-            toFocus.post(toFocus::requestFocus);
-        }
-    }
     // END PULCIX CUSTOM THEME
 }
