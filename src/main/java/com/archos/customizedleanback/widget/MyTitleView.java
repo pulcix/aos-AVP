@@ -194,6 +194,19 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
 
             hideNativeOrbs();
             
+            if (mHintView != null) {
+                float density = getResources().getDisplayMetrics().density;
+                RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) mHintView.getLayoutParams();
+                if (lp != null) {
+                    lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+                    lp.removeRule(RelativeLayout.END_OF);
+                    lp.topMargin = (int) (76 * density);
+                    lp.leftMargin = (int) (36 * density);
+                    mHintView.setLayoutParams(lp);
+                }
+                mHintView.applyInfuseStyle();
+            }
+
             if (mInfuseSearchContainer != null) {
                 mInfuseSearchContainer.setVisibility(View.VISIBLE);
                 mInfuseSearchContainer.setFocusable(true);
@@ -439,6 +452,11 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     public void setOnSearchClickedListener(View.OnClickListener listener) {
         mSearchClickListener = listener;
         mSearchOrbView.setOnOrbClickedListener(listener);
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (mInfuseSearchContainer != null) {
+                mInfuseSearchContainer.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+            }
+        }
         hideNativeOrbs();
     }
 
@@ -604,6 +622,26 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     public SearchOrbView.Colors getSearchAffordanceColors() {
         return mSearchOrbView.getOrbColors();
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    public void setInfuseSearchIconAndText(int iconResId, CharSequence text) {
+        if (mInfuseSearchContainer != null) {
+            mInfuseSearchContainer.setVisibility(View.VISIBLE);
+        }
+        if (mInfuseSearchIcon != null && iconResId != 0) {
+            mInfuseSearchIcon.setImageResource(iconResId);
+            mInfuseSearchIcon.setVisibility(View.VISIBLE);
+        }
+        if (mInfuseSearchText != null) {
+            if (text != null && text.length() > 0) {
+                mInfuseSearchText.setText(text);
+                mInfuseSearchText.setVisibility(View.VISIBLE);
+            } else {
+                mInfuseSearchText.setVisibility(View.GONE);
+            }
+        }
+    }
+    // END PULCIX CUSTOM THEME
 
     /**
      * Enables or disables any view animations.

@@ -115,6 +115,35 @@ public class NetworkListingFragment extends ListingFragment {
         // -> else -> add shortcut (proposes to index as well)
         final MyTitleView titleView = getTitleView();
         titleView.hideHintMessage();
+
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (isCurrentDirectoryShortcut) {
+                titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_minus_outline, getString(isCurrentDirectoryIndexed && isHimselfIndexedFolder ? R.string.remove_from_indexed_folders : R.string.remove_from_shortcuts));
+                titleView.setOnSearchClickedListener(mOrbClickListener);
+                if (isCurrentDirectoryIndexed && isHimselfIndexedFolder) {
+                    removeFromLibrary = true;
+                }
+            } else {
+                if (isCurrentDirectoryIndexed) {
+                    titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_minus_outline, getString(R.string.remove_from_indexed_folders));
+                    titleView.setOnSearchClickedListener(mOrbClickListener);
+                    removeFromLibrary = true;
+                } else {
+                    if (!canBeIndexed()) {
+                        titleView.setOnSearchClickedListener(null);
+                    } else {
+                        titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_plus_outline, getString(R.string.add_ssh_shortcut));
+                        titleView.setOnSearchClickedListener(mOrbClickListener);
+                    }
+                    if (mUserHasNoShortcutAtAll)
+                        titleView.setAndShowHintMessage(getString(R.string.help_overlay_network_shortcut_text1_lb));
+                }
+            }
+            return;
+        }
+        // END PULCIX CUSTOM THEME
+
         titleView.setOnOrb3ClickedListener(mOrbClickListener);
         if (isCurrentDirectoryShortcut) {
             titleView.setOrb3IconResId(R.drawable.orb_minus);

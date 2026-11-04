@@ -53,6 +53,25 @@ public class HintView extends FrameLayout{
         mTextView.setText(message);
     }
 
+    // BEGIN PULCIX CUSTOM THEME
+    public void applyInfuseStyle() {
+        float density = getResources().getDisplayMetrics().density;
+        if (mBox != null) {
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(0xFFFF7F02);
+            bg.setCornerRadius(12 * density);
+            mBox.setBackground(bg);
+            mBox.setPadding((int) (16 * density), (int) (12 * density), (int) (16 * density), (int) (12 * density));
+            mBox.setElevation(12 * density);
+        }
+        if (mTextView != null) {
+            mTextView.setTextColor(0xFFFFFFFF);
+            mTextView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+            mTextView.setTypeface(null, android.graphics.Typeface.NORMAL);
+        }
+    }
+    // END PULCIX CUSTOM THEME
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();

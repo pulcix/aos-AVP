@@ -102,6 +102,24 @@ public class LocalListingFragment extends ListingFragment {
 
     private void updateOrbIcon() {
         final MyTitleView titleView = getTitleView();
+        
+        // BEGIN PULCIX CUSTOM THEME
+        if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (isBlacklisted()) {
+                titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_plus_outline, getString(R.string.add_to_indexed_folders));
+                titleView.setOnSearchClickedListener(mOrbClickListener);
+            } else {
+                if (!canBeUnindexed()) {
+                    titleView.setOnSearchClickedListener(null);
+                } else {
+                    titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_minus_outline, getString(R.string.remove_from_indexed_folders));
+                    titleView.setOnSearchClickedListener(mOrbClickListener);
+                }
+            }
+            return;
+        }
+        // END PULCIX CUSTOM THEME
+
         if (isBlacklisted()) {
             titleView.setOrb3IconResId(R.drawable.orb_plus);
             titleView.setOnOrb3ClickedListener(mOrbClickListener);
