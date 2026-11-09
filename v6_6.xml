@@ -18,6 +18,7 @@
   <project path="native/dav1d-android-builder" name="dav1d-android-builder-nobin" revision="v1_5" />
   <project path="native/opus-android-builder" name="opus-android-builder-nobin" revision="20241012" />
   <project path="native/libmysofa-android-builder" name="libmysofa-android-builder" revision="main" />
+  <project path="native/libdovi-android-builder" name="libdovi-android-builder" revision="main" />
   <project path="native/zlib-android-builder" name="zlib-android-builder" revision="main" />
   <project path="native/libpng-android-builder" name="libpng-android-builder" revision="main" />
   <project path="native/libxml2-android-builder" name="libxml2-android-builder" revision="main" />
@@ -37,6 +38,7 @@
   <project path="native/prebuilt/dav1d" name="prebuilt-dav1d" revision="v1_5"/>
   <project path="native/prebuilt/openssl" name="prebuilt-openssl" revision="v4_1"/>
   <project path="native/prebuilt/libmysofa" name="prebuilt-libmysofa" revision="v1_3"/>
+  <project path="native/prebuilt/libdovi" name="prebuilt-libdovi" revision="main"/>
   <project path="native/prebuilt/torrentd" name="prebuilt-torrentd" revision="main"/>
   <project path="native/prebuilt/zlib" name="prebuilt-zlib" revision="main"/>
   <project path="native/prebuilt/libpng" name="prebuilt-libpng" revision="main"/>
