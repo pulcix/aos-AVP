@@ -130,6 +130,8 @@ OPENSSL_DIR := native/openssl-android-builder
 OPENSSL_PREBUILT_DIR := native/prebuilt/openssl
 LIBMYSOFA_DIR := native/libmysofa-android-builder
 LIBMYSOFA_PREBUILT_DIR := native/prebuilt/libmysofa
+LIBDOVI_DIR := native/libdovi-android-builder
+LIBDOVI_PREBUILT_DIR := native/prebuilt/libdovi
 FREETYPE_DIR := native/libfreetype-android-builder
 FREETYPE_PREBUILT_DIR := native/prebuilt/freetype
 FRIBIDI_DIR := native/libfribidi-android-builder
@@ -433,6 +435,7 @@ clean_native_build:
 	rm -rf $(OPUS_DIR)/opus $(OPUS_DIR)/build-*
 	rm -rf $(OPENSSL_DIR)/openssl.git
 	rm -rf $(LIBMYSOFA_DIR)/libmysofa $(LIBMYSOFA_DIR)/build-*
+	rm -rf $(LIBDOVI_DIR)/dovi_tool $(LIBDOVI_DIR)/build-* $(LIBDOVI_DIR)/target
 	rm -rf native/libtorrent-android-builder/libtorrent
 	rm -rf native/torrentd/obj
 	rm -rf $(AVOS_DIR)/obj $(AVOS_DIR)/libs
@@ -463,6 +466,9 @@ clean_prebuilt:
 	rm -rf $(LIBMYSOFA_DIR)/build-*
 	rm -rf $(LIBMYSOFA_PREBUILT_DIR)/lib/*
 	rm -rf $(LIBMYSOFA_PREBUILT_DIR)/include/*
+	rm -rf $(LIBDOVI_DIR)/build-*
+	rm -rf $(LIBDOVI_PREBUILT_DIR)/lib/*
+	rm -rf $(LIBDOVI_PREBUILT_DIR)/include/*
 	rm -rf $(FREETYPE_PREBUILT_DIR)/*
 	rm -rf $(FRIBIDI_PREBUILT_DIR)/*
 	rm -rf $(HARFBUZZ_PREBUILT_DIR)/*
@@ -502,6 +508,9 @@ native_build_native/openssl-android-builder:
 
 native_build_native/libmysofa-android-builder:
 	cd native/libmysofa-android-builder; REPO_TOP_DIR=$(REPO_TOP_DIR) bash build.sh
+
+native_build_native/libdovi-android-builder:
+	cd native/libdovi-android-builder; REPO_TOP_DIR=$(REPO_TOP_DIR) bash bootstrap_avp_libdovi.sh
 
 native_build_native/zlib-android-builder:
 	cd native/zlib-android-builder; REPO_TOP_DIR=$(REPO_TOP_DIR) bash build.sh
