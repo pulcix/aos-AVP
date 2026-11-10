@@ -544,6 +544,11 @@ ifneq ($(wildcard $(AVOS_DIR)/jni/libass_prebuilt.mk),)
 native_build_native/avos: native_build_native/libass-android-builder
 endif
 
+# Only AVOS versions integrating libdovi need it.
+ifneq ($(wildcard $(AVOS_DIR)/jni/libdovi_prebuilt.mk),)
+native_build_native/avos: native_build_native/libdovi-android-builder
+endif
+
 ifeq ($(AVOS_USES_LIBYUV),1)
 native_build_native/avos: native_build_native/libyuv
 endif
