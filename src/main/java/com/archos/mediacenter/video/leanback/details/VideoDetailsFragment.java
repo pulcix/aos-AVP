@@ -2634,7 +2634,15 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             }
 
             card.setOnFocusChangeListener((v, hasFocus) -> {
-                v.animate().scaleX(hasFocus ? 1.07f : 1.0f).scaleY(hasFocus ? 1.07f : 1.0f).setDuration(150).start();
+                float scale = hasFocus ? 1.08f : 1.0f;
+                v.animate().cancel();
+                v.animate()
+                        .scaleX(scale)
+                        .scaleY(scale)
+                        .setDuration(150)
+                        .setInterpolator(new androidx.interpolator.view.animation.FastOutSlowInInterpolator())
+                        .withLayer()
+                        .start();
                 cardBg.setStroke(hasFocus ? strokeWidth : 0, 0xFFFF7F02);
             });
 
@@ -2764,7 +2772,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                         v.setFocusableInTouchMode(false);
                         v.setOnClickListener(v1 -> mOnActionClickedListener.onActionClicked(action));
                         v.setOnFocusChangeListener((view, hasFocus) -> {
-                            float scale = hasFocus ? 1.05f : 1.0f;
+                            float scale = hasFocus ? 1.08f : 1.0f;
                             view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
                         });
                         primaryRow.addView(v);
@@ -3678,8 +3686,8 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             Context context = parent.getContext();
             float density = context.getResources().getDisplayMetrics().density;
             int width = (int) (130 * density);
-            int height = (int) (175 * density);
-            int imgHeight = (int) (115 * density);
+            int imgHeight = (int) (140 * density);
+            int height = (int) (205 * density);
 
             LinearLayout card = new LinearLayout(context);
             card.setOrientation(LinearLayout.VERTICAL);
@@ -3866,7 +3874,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             photoIv.setVisibility(View.VISIBLE);
             Picasso.get()
                     .load(url)
-                    .resize((int) (130 * density), (int) (115 * density))
+                    .resize((int) (130 * density), (int) (140 * density))
                     .centerCrop()
                     .into(photoIv, new Callback() {
                         @Override
