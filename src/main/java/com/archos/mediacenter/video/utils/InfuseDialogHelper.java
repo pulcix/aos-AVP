@@ -99,8 +99,8 @@ public class InfuseDialogHelper {
             ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) btn.getLayoutParams();
             lp.leftMargin = (int) (6 * density);
             lp.rightMargin = (int) (6 * density);
-            lp.topMargin = (int) (6 * density);
-            lp.bottomMargin = (int) (6 * density); // Spazio extra sotto i bottoni Cancel / OK!
+            lp.topMargin = (int) (0 * density);
+            lp.bottomMargin = (int) (2 * density); // Spazio extra sotto i bottoni Cancel / OK!
             btn.setLayoutParams(lp);
         }
 
@@ -108,10 +108,10 @@ public class InfuseDialogHelper {
         if (btn.getParent() instanceof View) {
             View buttonBar = (View) btn.getParent();
             buttonBar.setPadding(
-                (int) (16 * density),
-                (int) (8 * density),
-                (int) (18 * density),
-                (int) (8 * density) // Garantisce respiro dal bordo inferiore della card
+                (int) (6 * density),
+                (int) (0 * density),
+                (int) (6 * density),
+                (int) (6 * density) // Garantisce respiro dal bordo inferiore della card
             );
         }
 
