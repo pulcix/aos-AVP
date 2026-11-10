@@ -175,9 +175,7 @@ public class BoxItemPresenter extends Presenter {
 
         if (isInfuseTheme) {
             InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
-            InfuseCardStyler.bindCardState(vh.mCard);
-            vh.mCard.post(() -> InfuseCardStyler.bindCardState(vh.mCard));
-            vh.mCard.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mCard), 80);
+            InfuseCardStyler.bindCardStateFast(vh.mCard);
         }
         // END PULCIX CUSTOM THEME
     }

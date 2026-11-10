@@ -33,6 +33,7 @@ import android.widget.TextView;
 
 import com.archos.customizedleanback.widget.MyTitleView;
 import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 /**
  * A fragment for creating leanback vertical grids.
@@ -140,6 +141,9 @@ public class MyVerticalGridFragment extends MyBrandedFragment {
     private void showOrHideTitle() {
         // ARCHOS ADDED: update the title in case the GridView is already created
         if (mGridViewHolder == null) {
+            return;
+        }
+        if (getContext() != null && ThemeManager.getInstance(getContext()).isInfuseTheme()) {
             return;
         }
         if (mGridViewHolder.getGridView().findViewHolderForAdapterPosition(mSelectedPosition) == null) {

@@ -15,10 +15,14 @@
 package com.archos.mediacenter.video.player.tvmenu;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -94,6 +98,47 @@ public class TVCardDialog extends FrameLayout implements TVSlaveView  {
         
         requestFocus();
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        applyInfuseStyle();
+    }
+
+    public void applyInfuseStyle() {
+        if (!ThemeManager.getInstance(mContext).isInfuseTheme()) return;
+        float density = mContext.getResources().getDisplayMetrics().density;
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0xFF161618);
+        bg.setCornerRadius(16 * density);
+        bg.setStroke((int) (1.5f * density), 0xFF38383C);
+        setBackground(bg);
+        setClipToOutline(true);
+
+        int pad = (int) (16 * density);
+        setPadding(pad, pad, pad, pad);
+
+        ImageView imgView = (ImageView) findViewById(R.id.imageView);
+        if (imgView != null) {
+            android.view.ViewGroup.LayoutParams lp = imgView.getLayoutParams();
+            if (lp != null) {
+                lp.width = (int) (58 * density);
+                lp.height = (int) (58 * density);
+                imgView.setLayoutParams(lp);
+            }
+            imgView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        }
+
+        TextView infoText = (TextView) findViewById(R.id.info_text);
+        if (infoText != null) {
+            infoText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+            infoText.setTextColor(0xFFFFFFFF);
+            infoText.setTypeface(null, Typeface.BOLD);
+        }
+    }
+    // END PULCIX CUSTOM THEME
 
     public TVCardDialog getSlaveView(){ return slaveView; }
 

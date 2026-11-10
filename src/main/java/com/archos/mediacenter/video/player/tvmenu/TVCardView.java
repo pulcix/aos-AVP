@@ -16,16 +16,21 @@ package com.archos.mediacenter.video.player.tvmenu;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 
 import com.archos.environment.ArchosFeatures;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.player.FocusableTVCardView;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -106,6 +111,62 @@ public class TVCardView extends FrameLayout implements Checkable, FocusableTVCar
         this.ofol=null;
         setAlpha((float) (minAlpha/255.0));
     }
+
+    // BEGIN PULCIX CUSTOM THEME
+    public void applyInfuseCardStyle(boolean hasFocus) {
+        if (!ThemeManager.getInstance(mContext).isInfuseTheme()) return;
+        float density = mContext.getResources().getDisplayMetrics().density;
+        
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(16 * density);
+        
+        if (hasFocus) {
+            bg.setColor(0xF21C1C1E);
+            bg.setStroke((int) (1.5f * density), 0xFF38383C);
+        } else {
+            bg.setColor(0xCC141416);
+            bg.setStroke((int) (1.5f * density), 0xFF38383C);
+        }
+
+        InsetDrawable insetBg = new InsetDrawable(bg, (int) (8 * density), 0, (int) (8 * density), 0);
+        setBackground(insetBg);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setClipToOutline(true);
+        }
+
+        ImageView imgView = (ImageView) findViewById(R.id.imageView);
+        if (imgView != null) {
+            android.view.ViewGroup.LayoutParams lp = imgView.getLayoutParams();
+            if (lp != null) {
+                lp.width = (int) (58 * density);
+                lp.height = (int) (58 * density);
+                imgView.setLayoutParams(lp);
+            }
+            imgView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imgView.setColorFilter(hasFocus ? 0xFFFFFFFF : 0xFF8E8E93);
+        }
+
+        TextView infoText = (TextView) findViewById(R.id.info_text);
+        if (infoText != null) {
+            infoText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+            infoText.setTextColor(hasFocus ? 0xFFFFFFFF : 0xFF8E8E93);
+            infoText.setTypeface(null, hasFocus ? Typeface.BOLD : Typeface.NORMAL);
+        }
+
+        TextView infoText2 = (TextView) findViewById(R.id.info_text2);
+        if (infoText2 != null) {
+            infoText2.setTextColor(hasFocus ? 0xFFFFFFFF : 0xFF8E8E93);
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            applyInfuseCardStyle(hasFocus());
+        }
+    }
+    // END PULCIX CUSTOM THEME
     //dimensions for animations
 
     public TVCardView getSlaveView(){return slaveView;}
@@ -328,6 +389,9 @@ public class TVCardView extends FrameLayout implements Checkable, FocusableTVCar
         super.setOnFocusChangeListener(new OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
+                if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+                    applyInfuseCardStyle(hasFocus);
+                }
                 ofcl.onFocusChange(v, hasFocus);
                 if (ocl == null && others.size() > 0)
                     others.get(0).requestFocus();
@@ -406,6 +470,9 @@ public class TVCardView extends FrameLayout implements Checkable, FocusableTVCar
     //animation
 
     public void focus(final boolean isFocused) {
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            applyInfuseCardStyle(isFocused);
+        }
         if(slaveView!=null)
             slaveView.focus(isFocused);
         final Animation a;

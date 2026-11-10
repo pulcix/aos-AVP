@@ -78,6 +78,8 @@ import com.archos.mediacenter.video.info.VideoInfoCommonClass;
 import com.archos.mediacenter.video.leanback.BackdropTask;
 import com.archos.mediacenter.video.leanback.CompatibleCursorMapperConverter;
 import com.archos.mediacenter.video.leanback.VideoViewClickedListener;
+import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+import android.view.ViewGroup;
 import com.archos.mediacenter.video.leanback.details.ArchosDetailsOverviewRowPresenter;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
 import com.archos.mediacenter.video.leanback.presenter.PosterImageCardPresenter;
@@ -134,6 +136,7 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
     private int oldPos = 0;
     private int oldSelectedSubPosition = 0;
     private boolean mHasDetailRow;
+    private View mInfuseDarkOverlay;
 
     private void setmTvshow(long id) {
         if (DBG) Log.d(TAG, "setTvshow: for id=" + id);
@@ -174,7 +177,11 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
             });
         }
 
-        setTopOffsetRatio(0.6f);
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            setTopOffsetRatio(0.12f);
+        } else {
+            setTopOffsetRatio(0.6f);
+        }
 
         Intent intent = getActivity().getIntent();
         mTvshow = (Tvshow) intent.getSerializableExtra(EXTRA_TVSHOW);
@@ -248,9 +255,28 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
             }
         });
 
+        OnItemViewClickedListener mOnItemViewClickedListener = new OnItemViewClickedListener() {
+            @Override
+            public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
+                if (item instanceof Video) {
+                    //animate only if episode picture isn't displayed
+                    boolean animate =!((item instanceof Episode)&&((Episode)item).getPictureUri()!=null);
+                    VideoViewClickedListener.showVideoDetails(getActivity(), (Video) item, itemViewHolder, animate, false, false, -1, TvshowFragment.this, REQUEST_CODE_VIDEO);
+                }
+            }
+        };
+
         ClassPresenterSelector ps = new ClassPresenterSelector();
         ps.addClassPresenter(DetailsOverviewRow.class, mOverviewRowPresenter);
-        ps.addClassPresenter(ListRow.class, new ListRowPresenter());
+
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            CustomDpadListRowPresenter dpadPresenter = new CustomDpadListRowPresenter();
+            dpadPresenter.setSelectEffectEnabled(false);
+            dpadPresenter.setOnItemViewClickedListener(mOnItemViewClickedListener);
+            ps.addClassPresenter(ListRow.class, dpadPresenter);
+        } else {
+            ps.addClassPresenter(ListRow.class, new ListRowPresenter());
+        }
 
         mRowsAdapter = new ArrayObjectAdapter(ps);
         mHasDetailRow = false;
@@ -260,16 +286,7 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
         // --> This instance of BackdropTask() will not be used but it must be created here!
         mBackdropTask = new BackdropTask(getActivity(), VideoInfoCommonClass.getDarkerColor(mColor));
 
-        setOnItemViewClickedListener(new OnItemViewClickedListener() {
-            @Override
-            public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-                if (item instanceof Video) {
-                    //animate only if episode picture isn't displayed
-                    boolean animate =!((item instanceof Episode)&&((Episode)item).getPictureUri()!=null);
-                    VideoViewClickedListener.showVideoDetails(getActivity(), (Video) item, itemViewHolder, animate, false, false, -1, TvshowFragment.this, REQUEST_CODE_VIDEO);
-                }
-            }
-        });
+        setOnItemViewClickedListener(mOnItemViewClickedListener);
     }
 
     private void playEpisode() {
@@ -338,6 +355,11 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
         }
         oldPos = selectedPosition;
         oldSelectedSubPosition = selectedSubPosition;
+
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme() && mInfuseDarkOverlay != null) {
+            float targetAlpha = (selectedPosition > 1) ? 0.85f : 0.0f;
+            mInfuseDarkOverlay.animate().alpha(targetAlpha).setDuration(250).start();
+        }
     }
 
     @Override
@@ -345,6 +367,58 @@ public class TvshowFragment extends DetailsFragmentWithLessTopOffset implements 
         if (DBG) Log.d(TAG, "onViewCreated");
         super.onViewCreated(view, savedInstanceState);
         mOverlay = new Overlay(this);
+
+        final Activity activity = getActivity();
+        if (activity != null && ThemeManager.getInstance(activity).isInfuseTheme()) {
+            View detailsFragmentRoot = view.findViewById(androidx.leanback.R.id.details_fragment_root);
+            View targetBgView = (detailsFragmentRoot != null) ? detailsFragmentRoot : view;
+            targetBgView.setBackground(ContextCompat.getDrawable(activity, R.drawable.bg_infuse_details_vignette));
+
+            if (view instanceof ViewGroup) {
+                ViewGroup root = (ViewGroup) view;
+                if (mInfuseDarkOverlay != null && mInfuseDarkOverlay.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) mInfuseDarkOverlay.getParent()).removeView(mInfuseDarkOverlay);
+                }
+                mInfuseDarkOverlay = new View(activity);
+                mInfuseDarkOverlay.setBackgroundColor(0xFF000000); // 100% black
+                mInfuseDarkOverlay.setAlpha(0f);
+                ViewGroup.LayoutParams overlayLp = new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT);
+                int insertIndex = detailsFragmentRoot != null ? root.indexOfChild(detailsFragmentRoot) : -1;
+                if (insertIndex != -1) {
+                    root.addView(mInfuseDarkOverlay, insertIndex, overlayLp);
+                } else {
+                    root.addView(mInfuseDarkOverlay, overlayLp);
+                }
+            }
+
+            View titleGroup = view.findViewById(androidx.leanback.R.id.browse_title_group);
+            if (titleGroup != null) {
+                titleGroup.setVisibility(View.GONE);
+                if (titleGroup.getLayoutParams() != null) {
+                    titleGroup.getLayoutParams().height = 0;
+                    titleGroup.requestLayout();
+                }
+            }
+
+            view.post(() -> {
+                if (!isAdded()) return;
+                if (getRowsSupportFragment() != null && getRowsSupportFragment().getVerticalGridView() != null) {
+                    getRowsSupportFragment().getVerticalGridView().setOnChildViewHolderSelectedListener(
+                            new androidx.leanback.widget.OnChildViewHolderSelectedListener() {
+                                @Override
+                                public void onChildViewHolderSelected(androidx.recyclerview.widget.RecyclerView parent,
+                                                                      androidx.recyclerview.widget.RecyclerView.ViewHolder child, int position, int subposition) {
+                                    if (mInfuseDarkOverlay != null) {
+                                        float targetAlpha = (position > 1) ? 0.85f : 0.0f;
+                                        mInfuseDarkOverlay.animate().alpha(targetAlpha).setDuration(250).start();
+                                    }
+                                }
+                            });
+                }
+            });
+        }
     }
 
     @Override

@@ -85,9 +85,7 @@ public class NetworkShortcutPresenter extends Presenter {
             vh.getImageView().setImageResource(R.drawable.ic_infuse_nas_outline);
             vh.getImageView().setBackgroundColor(android.graphics.Color.TRANSPARENT);
             InfuseCardStyler.applyInfuseCardStyle(vh.mCard);
-            InfuseCardStyler.bindCardState(vh.mCard);
-            vh.mCard.post(() -> InfuseCardStyler.bindCardState(vh.mCard));
-            vh.mCard.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mCard), 80);
+            InfuseCardStyler.bindCardStateFast(vh.mCard);
         } else {
             vh.getImageView().setBackgroundColor(ThemeManager.getInstance(vh.mCard.getContext()).getLeanbackHeaderColor());
             vh.getImageView().setImageResource(shortcut.getImage());

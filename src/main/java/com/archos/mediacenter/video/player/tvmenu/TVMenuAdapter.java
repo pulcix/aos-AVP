@@ -29,6 +29,7 @@ import android.widget.FrameLayout;
 
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.player.tvmenu.TVCardView.onFocusOutListener;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 import java.util.ArrayList;
 
@@ -58,7 +59,7 @@ public class TVMenuAdapter {
         this.biggest=0;
         this.startOffset=80;
         this.currentOffset=80;
-        this.mGapBetweenCards=20;
+        this.mGapBetweenCards=ThemeManager.getInstance(mActivity).isInfuseTheme() ? 36 : 20;
         this.cards = new ArrayList<View>();
         this.last=null;
 

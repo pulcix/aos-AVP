@@ -56,6 +56,7 @@ import com.archos.mediacenter.video.leanback.CompatibleCursorMapperConverter;
 import com.archos.mediacenter.video.leanback.DisplayMode;
 import com.archos.mediacenter.video.leanback.VideoViewClickedListener;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
+import com.archos.mediacenter.video.leanback.presenter.InfuseGridHelper;
 import com.archos.mediacenter.video.leanback.presenter.PosterImageCardPresenter;
 import com.archos.mediacenter.video.leanback.presenter.VideoListPresenter;
 import com.archos.mediacenter.video.leanback.search.VideoSearchActivity;
@@ -163,19 +164,7 @@ public class AllCollectionsGridFragment extends MyVerticalGridFragment implement
                 filePresenter = new PosterImageCardPresenter(getActivity(), longClickListener);
                 // BEGIN PULCIX CUSTOM THEME
                 if (isInfuse) {
-                    vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_NONE, false) {
-                        @Override
-                        protected void initializeGridViewHolder(ViewHolder vh) {
-                            super.initializeGridViewHolder(vh);
-                            androidx.leanback.widget.VerticalGridView gridView = vh.getGridView();
-                            int spacingPx = gridView.getResources().getDimensionPixelSize(R.dimen.infuse_row_item_spacing);
-                            gridView.setHorizontalSpacing(spacingPx);
-                            gridView.setVerticalSpacing(spacingPx);
-                            gridView.setClipChildren(false);
-                            gridView.setClipToPadding(false);
-                        }
-                    };
-                    vgp.setNumberOfColumns(5); // Reduce from 6 to 5 to accommodate larger spacing
+                    vgp = InfuseGridHelper.createInfuseGridPresenter(6);
                 } else {
                     vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_LARGE);
                     vgp.setNumberOfColumns(6);
@@ -186,7 +175,7 @@ public class AllCollectionsGridFragment extends MyVerticalGridFragment implement
                 filePresenter = new VideoListPresenter(false, longClickListener);
                 // BEGIN PULCIX CUSTOM THEME
                 if (isInfuse) {
-                    vgp = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_NONE, false);
+                    vgp = InfuseGridHelper.createInfuseGridPresenter(1);
                 } else {
                     vgp = new VerticalGridPresenter();
                 }

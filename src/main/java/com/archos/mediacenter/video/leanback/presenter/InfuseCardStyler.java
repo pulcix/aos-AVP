@@ -8,6 +8,7 @@ import androidx.leanback.widget.BaseCardView;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.utils.ThemeManager;
 import androidx.core.content.ContextCompat;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
 public class InfuseCardStyler {
 
@@ -29,15 +30,7 @@ public class InfuseCardStyler {
             imageCardView.setInfoAreaBackgroundColor(android.graphics.Color.TRANSPARENT);
             if (imageCardView.getMainImageView() != null) {
                 targetView = imageCardView.getMainImageView();
-                android.widget.ImageView mainImageView = imageCardView.getMainImageView();
-                final float radius = 14f * cardView.getResources().getDisplayMetrics().density;
-                mainImageView.setOutlineProvider(new android.view.ViewOutlineProvider() {
-                    @Override
-                    public void getOutline(View view, android.graphics.Outline outline) {
-                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
-                    }
-                });
-                mainImageView.setClipToOutline(true);
+                imageCardView.getMainImageView().setClipToOutline(false);
             }
         }
         
@@ -57,26 +50,27 @@ public class InfuseCardStyler {
             // Personalizzazione del Titolo della Card (Film / Serie TV)
             View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
             if (titleText instanceof android.widget.TextView tv) {
+                if (tv.getLayoutParams() != null) {
+                    tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                }
                 tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo film/serie
                 tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 17);
-                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
                 tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
             }
 
             // Rimuoviamo l'ingombro vuoto in altezza del content_text secondario se vuoto
             View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
             if (contentText instanceof android.widget.TextView tv) {
-                CharSequence text = tv.getText();
-                if (text == null || text.toString().trim().isEmpty()) {
-                    tv.setVisibility(View.GONE);
-                } else {
-                    tv.setVisibility(View.VISIBLE);
-                    // Colore metadato grigio scuro (#777777) stile Infuse
-                    tv.setTextColor(0xFF777777);
-                    tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
-                    tv.setGravity(android.view.Gravity.CENTER);
-                    tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
+                if (tv.getLayoutParams() != null) {
+                    tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                 }
+                tv.setTextColor(0xFF777777); // Colore metadato grigio scuro (#777777) stile Infuse
+                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+                tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
+                CharSequence text = tv.getText();
+                tv.setVisibility((text == null || text.toString().trim().isEmpty()) ? View.GONE : View.VISIBLE);
             }
         }
         
@@ -181,90 +175,68 @@ public class InfuseCardStyler {
 
         View finalTargetView = targetView;
         
-        // Imposta inizialmente il bordo inset (unfocused state)
+        // Imposta una sola volta il bordo inset (unfocused/focused gestito da selector)
         finalTargetView.setForeground(ContextCompat.getDrawable(cardView.getContext(), R.drawable.bg_card_stroke_inset));
 
-        // EFFETTO ZOOM FOCUS SENZA DROP SHADOW
+        // EFFETTO ZOOM FOCUS HARDWARE ACCELERATED CON FASTOUTSLOWIN
         cardView.setOnFocusChangeListener((v, hasFocus) -> {
-            v.setStateListAnimator(null);
-            v.setElevation(0f);
-            v.setTranslationZ(0f);
-            androidx.core.view.ViewCompat.setElevation(v, 0f);
-            androidx.core.view.ViewCompat.setTranslationZ(v, 0f);
-
-            finalTargetView.setStateListAnimator(null);
-            finalTargetView.setElevation(0f);
-            finalTargetView.setTranslationZ(0f);
-            androidx.core.view.ViewCompat.setElevation(finalTargetView, 0f);
-            androidx.core.view.ViewCompat.setTranslationZ(finalTargetView, 0f);
-
-            if (hasFocus) {
-                // Reset siblings scale to 1.0f if they do not have focus
-                if (v.getParent() instanceof ViewGroup) {
-                    ViewGroup parent = (ViewGroup) v.getParent();
-                    for (int i = 0; i < parent.getChildCount(); i++) {
-                        View sibling = parent.getChildAt(i);
-                        if (sibling != v && !sibling.hasFocus()) {
-                            sibling.animate().cancel();
-                            sibling.setScaleX(1.0f);
-                            sibling.setScaleY(1.0f);
-                            sibling.setTranslationZ(0f);
-                        }
-                    }
+            View infoFieldView = v.findViewById(androidx.leanback.R.id.info_field);
+            if (infoFieldView != null) {
+                View contentTv = infoFieldView.findViewById(androidx.leanback.R.id.content_text);
+                if (contentTv instanceof android.widget.TextView tv) {
+                    tv.setTextColor(hasFocus ? 0xFFD1D1D6 : 0xFF777777);
                 }
-
-                finalTargetView.setForeground(ContextCompat.getDrawable(v.getContext(), R.drawable.bg_card_stroke_inset));
-                v.animate()
-                    .scaleX(1.15f)
-                    .scaleY(1.15f)
-                    .translationZ(0f)
-                    .setDuration(200)
-                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
-                    .start();
-            } else {
-                finalTargetView.setForeground(ContextCompat.getDrawable(v.getContext(), R.drawable.bg_card_stroke_inset));
-                v.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .translationZ(0f)
-                    .setDuration(160)
-                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
-                    .start();
             }
+
+            v.animate().cancel();
+            float targetScale = hasFocus ? 1.12f : 1.0f;
+            v.animate()
+                .scaleX(targetScale)
+                .scaleY(targetScale)
+                .setDuration(180)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .withLayer()
+                .start();
         });
 
-        if (cardView.getTag(R.id.root) == null) {
-            cardView.setTag(R.id.root, Boolean.TRUE);
-            cardView.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
-                bindCardState(cardView);
-            });
-        }
-
-        bindCardState(cardView);
+        bindCardStateFast(cardView);
     }
 
-    public static void bindCardState(View cardView) {
+    public static void bindCardStateFast(View cardView) {
         if (cardView == null) return;
         if (!ThemeManager.getInstance(cardView.getContext()).isInfuseTheme()) return;
 
-        cardView.animate().cancel();
         boolean hasFocus = cardView.hasFocus() || cardView.isSelected();
-        float scale = hasFocus ? 1.15f : 1.0f;
-        cardView.setScaleX(scale);
-        cardView.setScaleY(scale);
+        float targetScale = hasFocus ? 1.12f : 1.0f;
+        if (cardView.getScaleX() != targetScale) {
+            cardView.animate().cancel();
+            cardView.setScaleX(targetScale);
+            cardView.setScaleY(targetScale);
+        }
         cardView.setTranslationZ(0f);
 
-        if (hasFocus && cardView.getParent() instanceof ViewGroup parent) {
-            for (int i = 0; i < parent.getChildCount(); i++) {
-                View sibling = parent.getChildAt(i);
-                if (sibling != cardView && !sibling.hasFocus()) {
-                    sibling.animate().cancel();
-                    sibling.setScaleX(1.0f);
-                    sibling.setScaleY(1.0f);
-                    sibling.setTranslationZ(0f);
+        View infoField = cardView.findViewById(androidx.leanback.R.id.info_field);
+        if (infoField != null) {
+            View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
+            if (contentText instanceof android.widget.TextView tv) {
+                if (tv.getLayoutParams() != null && tv.getLayoutParams().width != ViewGroup.LayoutParams.MATCH_PARENT) {
+                    tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                }
+                tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+                tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
+                CharSequence text = tv.getText();
+                if (text == null || text.toString().trim().isEmpty()) {
+                    tv.setVisibility(View.GONE);
+                } else {
+                    tv.setVisibility(View.VISIBLE);
+                    tv.setTextColor(hasFocus ? 0xFFD1D1D6 : 0xFF777777);
                 }
             }
         }
+    }
+
+    public static void bindCardState(View cardView) {
+        bindCardStateFast(cardView);
     }
 }
 // END PULCIX CUSTOM THEME

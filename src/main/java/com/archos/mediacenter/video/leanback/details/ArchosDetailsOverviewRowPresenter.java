@@ -244,26 +244,36 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
                 if (frame != null) {
                     frame.setClipToOutline(false);
                     frame.setOutlineProvider(null);
-                    frame.setPadding(0, 0, 0, 0);
-                    frame.setMinimumHeight((int) (320 * res.getDisplayMetrics().density));
+                    float density = res.getDisplayMetrics().density;
+                    int topSpace = (int) (56 * density);
+                    int bottomSpace = (int) (16 * density);
+                    frame.setPadding(frame.getPaddingLeft(), topSpace, frame.getPaddingRight(), bottomSpace);
+                    frame.setMinimumHeight(0);
                     if (frame.getLayoutParams() != null) {
                         frame.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                         frame.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
                         if (frame.getLayoutParams() instanceof MarginLayoutParams) {
                             ((MarginLayoutParams) frame.getLayoutParams()).leftMargin = 0;
                             ((MarginLayoutParams) frame.getLayoutParams()).rightMargin = 0;
+                            ((MarginLayoutParams) frame.getLayoutParams()).topMargin = 0;
                         }
                     }
                     if (frame instanceof ViewGroup && ((ViewGroup) frame).getChildCount() > 0) {
                         View relativeLayout = ((ViewGroup) frame).getChildAt(0);
                         if (relativeLayout != null) {
                             relativeLayout.setPadding(0, 0, 0, 0);
+                            if (relativeLayout.getLayoutParams() != null) {
+                                relativeLayout.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                            }
                         }
                     }
                 }
 
                 if (description != null) {
                     description.setPadding(0, 0, 0, 0);
+                    if (description.getLayoutParams() != null) {
+                        description.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    }
                     if (description.getLayoutParams() instanceof MarginLayoutParams) {
                         MarginLayoutParams lp = (MarginLayoutParams) description.getLayoutParams();
                         lp.setMarginStart(0);
@@ -401,7 +411,7 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
             frame.setClipToOutline(false);
             frame.setOutlineProvider(null);
             frame.setPadding(0, 0, 0, 0);
-            frame.setMinimumHeight((int) (320 * density));
+            frame.setMinimumHeight(0);
             if (frame.getLayoutParams() != null) {
                 frame.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                 frame.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -478,32 +488,62 @@ public class ArchosDetailsOverviewRowPresenter extends FullWidthDetailsOverviewR
                     actionsGrid.setLayoutParams(lp);
                 }
             }
-        if (actionsBg != null && actionsBg.getLayoutParams() != null) {
-            actionsBg.setVisibility(View.VISIBLE);
-            actionsBg.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
-            actionsBg.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
         View infuseContainer = actionsBg != null ? actionsBg.findViewById(R.id.infuse_actions_container) : null;
-        if (infuseContainer != null && infuseContainer.getLayoutParams() != null) {
-            infuseContainer.setVisibility(View.VISIBLE);
-            infuseContainer.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            infuseContainer.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            infuseContainer.setPadding((int) (6 * density), 0, 0, 0);
-            if (infuseContainer.getLayoutParams() instanceof MarginLayoutParams) {
-                MarginLayoutParams lp = (MarginLayoutParams) infuseContainer.getLayoutParams();
-                lp.setMarginStart(0);
-                lp.leftMargin = 0;
-                lp.setMarginEnd(0);
-                lp.rightMargin = 0;
-                infuseContainer.setLayoutParams(lp);
+        View iconRow = infuseContainer != null ? infuseContainer.findViewById(R.id.infuse_icon_actions) : null;
+        boolean hasInfuseActions = iconRow instanceof ViewGroup && ((ViewGroup) iconRow).getChildCount() > 0;
+        boolean hasNativeActions = actionsGrid != null && actionsGrid.getAdapter() != null && actionsGrid.getAdapter().getItemCount() > 0;
+
+        if (!hasInfuseActions && !hasNativeActions) {
+            if (actionsBg != null) {
+                actionsBg.setVisibility(View.GONE);
+                if (actionsBg.getLayoutParams() != null) {
+                    actionsBg.getLayoutParams().height = 0;
+                }
+                if (actionsBg.getLayoutParams() instanceof MarginLayoutParams) {
+                    MarginLayoutParams mlp = (MarginLayoutParams) actionsBg.getLayoutParams();
+                    mlp.topMargin = 0;
+                    mlp.bottomMargin = 0;
+                    actionsBg.setLayoutParams(mlp);
+                }
             }
-            View iconRow = infuseContainer.findViewById(R.id.infuse_icon_actions);
-            if (iconRow != null && iconRow.getLayoutParams() != null) {
-                iconRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            if (infuseContainer != null) {
+                infuseContainer.setVisibility(View.GONE);
+                if (infuseContainer.getLayoutParams() != null) {
+                    infuseContainer.getLayoutParams().height = 0;
+                }
+                if (infuseContainer.getLayoutParams() instanceof MarginLayoutParams) {
+                    MarginLayoutParams mlp = (MarginLayoutParams) infuseContainer.getLayoutParams();
+                    mlp.topMargin = 0;
+                    mlp.bottomMargin = 0;
+                    infuseContainer.setLayoutParams(mlp);
+                }
             }
-            View primaryRow = infuseContainer.findViewById(R.id.infuse_primary_actions);
-            if (primaryRow != null && primaryRow.getLayoutParams() != null) {
-                primaryRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        } else {
+            if (actionsBg != null && actionsBg.getLayoutParams() != null) {
+                actionsBg.setVisibility(View.VISIBLE);
+                actionsBg.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                actionsBg.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            }
+            if (infuseContainer != null && infuseContainer.getLayoutParams() != null) {
+                infuseContainer.setVisibility(View.VISIBLE);
+                infuseContainer.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                infuseContainer.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                infuseContainer.setPadding((int) (6 * density), 0, 0, 0);
+                if (infuseContainer.getLayoutParams() instanceof MarginLayoutParams) {
+                    MarginLayoutParams lp = (MarginLayoutParams) infuseContainer.getLayoutParams();
+                    lp.setMarginStart(0);
+                    lp.leftMargin = 0;
+                    lp.setMarginEnd(0);
+                    lp.rightMargin = 0;
+                    infuseContainer.setLayoutParams(lp);
+                }
+                if (iconRow != null && iconRow.getLayoutParams() != null) {
+                    iconRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                }
+                View primaryRow = infuseContainer.findViewById(R.id.infuse_primary_actions);
+                if (primaryRow != null && primaryRow.getLayoutParams() != null) {
+                    primaryRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                }
             }
         }
     }

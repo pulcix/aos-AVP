@@ -133,9 +133,7 @@ public class IconItemPresenter extends Presenter {
 
         // BEGIN PULCIX CUSTOM THEME
         InfuseCardStyler.applyInfuseCardStyle(vh.mBaseCard);
-        InfuseCardStyler.bindCardState(vh.mBaseCard);
-        vh.mBaseCard.post(() -> InfuseCardStyler.bindCardState(vh.mBaseCard));
-        vh.mBaseCard.postDelayed(() -> InfuseCardStyler.bindCardState(vh.mBaseCard), 80);
+        InfuseCardStyler.bindCardStateFast(vh.mBaseCard);
         // END PULCIX CUSTOM THEME
     }
 

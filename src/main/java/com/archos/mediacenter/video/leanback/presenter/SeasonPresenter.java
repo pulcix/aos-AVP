@@ -199,6 +199,11 @@ public class SeasonPresenter extends Presenter {
             vh.setInfoMessage(desc);
             vh.setInfoColor(color);
         }
+
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            InfuseCardStyler.applyInfuseCardStyle(card);
+            InfuseCardStyler.bindCardStateFast(card);
+        }
     }
 
     @Override

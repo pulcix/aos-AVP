@@ -15,6 +15,8 @@
 package com.archos.mediacenter.video.player.tvmenu;
 
 import android.content.Context;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -29,6 +31,7 @@ import android.widget.TextView;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.player.SubtitleDelayPickerAbstract;
 import com.archos.mediacenter.video.player.SubtitleDelayPickerDialog;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 
 public class SubtitleDelayTVPicker extends SubtitleDelayPickerAbstract implements TVSlaveView {
@@ -120,6 +123,27 @@ public class SubtitleDelayTVPicker extends SubtitleDelayPickerAbstract implement
         
     }
     public void setFocus(boolean hasFocus){
+        if (ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            float density = getContext().getResources().getDisplayMetrics().density;
+            TextView tv = (TextView) findViewById(R.id.text_delay);
+            if (hasFocus) {
+                GradientDrawable pill = new GradientDrawable();
+                pill.setColor(0xFFFF7F02);
+                pill.setCornerRadius(10 * density);
+                setBackground(pill);
+                if (tv != null) {
+                    tv.setTextColor(0xFFFFFFFF);
+                    tv.setTypeface(null, Typeface.BOLD);
+                }
+            } else {
+                setBackground(null);
+                if (tv != null) {
+                    tv.setTextColor(0xFFFFFFFF);
+                    tv.setTypeface(null, Typeface.NORMAL);
+                }
+            }
+            return;
+        }
         if(hasFocus){
      
             this.setBackgroundResource(R.color.video_info_next_prev_button_focused);

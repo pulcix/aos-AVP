@@ -98,6 +98,7 @@ import com.archos.mediacenter.video.player.tvmenu.TVCardView;
 import com.archos.mediacenter.video.player.tvmenu.TVMenu;
 import com.archos.mediacenter.video.player.tvmenu.TVMenuAdapter;
 import com.archos.mediacenter.video.player.tvmenu.TVMenuItem;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.player.tvmenu.TVUtils;
 import com.archos.mediacenter.video.player.tvmenu.TimerDelayTVPicker;
 import com.archos.mediacenter.video.utils.AdditionalServiceSingleton;
@@ -1961,9 +1962,10 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
     public void createPlayerTVMenu() {
         if (mPlayerController != null && mPlayerController.getTVMenuAdapter() != null) {
             TVMenuAdapter tma = mPlayerController.getTVMenuAdapter();
+            boolean isInfuse = ThemeManager.getInstance(this).isInfuseTheme();
 
             //[subtitles]
-            mSubtitleTVCardView = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), R.drawable.tv_subtitles, null),
+            mSubtitleTVCardView = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_subtitles : R.drawable.tv_subtitles, null),
                     getResources().getString(R.string.menu_subtitles));
             mSubtitleTVMenu = tma.createTVMenu();
             mSubtitleTVMenu.setOnItemClickListener(new View.OnClickListener() {
@@ -1986,7 +1988,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             //[/subtitles]
 
             //[audiotrack]
-            mAudioTracksTVCardView = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), R.drawable.tv_languages, null),
+            mAudioTracksTVCardView = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_player_audio_outline : R.drawable.tv_languages, null),
                     getResources().getString(R.string.menu_audio));
             mAudioTracksTVMenu = tma.createTVMenu();
             mAudioTracksTVMenu.setOnItemClickListener(new View.OnClickListener() {
@@ -2009,7 +2011,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             //[/audiotrack]
 
             if (isStereoEffectOn()) {
-                TVCardView cv = tma.createAndAddView(ResourcesCompat.getDrawable(getResources(), R.drawable.tv_3d, null), null,
+                TVCardView cv = tma.createAndAddView(ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_player_cpu_outline : R.drawable.tv_3d, null), null,
                         getResources().getString(R.string.pref_s3d_mode_title));
                 final TVMenu tvm3d = tma.createTVMenu();
                 int dialogInitItem = (mPlayer.getEffectMode() != 0) ? Integer.numberOfTrailingZeros(mPlayer.getEffectMode()) : 0;
@@ -2031,7 +2033,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             }
 
             //[infomenu]
-            TVCardView tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(),R.drawable.tv_info, null),
+            TVCardView tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_info : R.drawable.tv_info, null),
                     getResources().getString(R.string.menu_info));
             String decoder = VideoInfoCommonClass.getShortDecoder(mPlayer.getVideoMetadata(), getResources(), mPlayer.getType());
 
@@ -2057,7 +2059,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             //[/infomenu]
 
             // Scale (format) type
-            tcv = tma.createAndAddView(ResourcesCompat.getDrawable(getResources(), R.drawable.tv_format, null), null,
+            tcv = tma.createAndAddView(ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_player_format_outline : R.drawable.tv_format, null), null,
                                        getResources().getString( R.string.pref_format_mode_title));
             final TVMenu tvmFormat = tma.createTVMenu();
 
@@ -2109,7 +2111,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             tcv.addOtherView(tvmFormat);
 
             //[playmode]
-            tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), R.drawable.tv_playmode, null),
+            tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_player_playmode_outline : R.drawable.tv_playmode, null),
                                        getResources().getString(R.string.pref_play_mode_title));
             final TVMenu tvmPlayMode = tma.createTVMenu();
             tvmPlayMode.setOnItemClickListener(new View.OnClickListener() {
@@ -2129,6 +2131,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             tvmPlayMode.setItems(R.array.pref_play_mode_entries, PlayerService.sPlayerService.mPlayMode, true);
             tcv.addOtherView(tvmPlayMode);
             //[/playmode]
+
             /*
             //[sleep timer]
             TVCardView timerTVCardView = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), R.drawable.ic_menu_delay, null),
@@ -2163,7 +2166,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerControlle
             }
 
             final AppCompatActivity mActivity = this;
-            tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), R.drawable.tv_settings, null),
+            tcv = tma.createAndAddView(null, ResourcesCompat.getDrawable(getResources(), isInfuse ? R.drawable.ic_infuse_settings : R.drawable.tv_settings, null),
                                        getResources().getString(R.string.preferences));
             tcv.setOnSwitchClickListener(new View.OnClickListener() {
                 @Override

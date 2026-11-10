@@ -298,6 +298,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     private List<ScraperImage> mAvailablePosters = new ArrayList<>();
     private List<ScraperImage> mAvailableBackdrops = new ArrayList<>();
     private ListRow mRelatedRow;
+    private ListRow mSeasonEpisodesRow;
     private OnItemViewClickedListener mItemViewClickedListener;
     private AsyncTask<Video, Void, Pair<Bitmap, Video>> mThumbnailAsyncTask;
     private Bitmap mThumbnail;
@@ -511,10 +512,17 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                             fullyReloadVideo(mVideo, mPoster);
                         }
                         LoaderManager.getInstance(VideoDetailsFragment.this).restartLoader(1, null, VideoDetailsFragment.this);
-                    } else if (row != null && row.getId() == 300) {
+                    } else if (row != mFileListRow) {
+                        Video clickedVideo = (Video) item;
+                        if (mVideo != null && clickedVideo.getId() == mVideo.getId()) return;
                         Intent relatedIntent = new Intent(currentActivity, VideoDetailsActivity.class);
-                        relatedIntent.putExtra(VideoDetailsFragment.EXTRA_VIDEO, (Video) item);
+                        relatedIntent.putExtra(VideoDetailsFragment.EXTRA_VIDEO, clickedVideo);
+                        relatedIntent.putExtra(VideoDetailsFragment.EXTRA_SHOULD_LOAD_BACKDROP, true);
                         startActivity(relatedIntent);
+                        currentActivity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                        if (row == mSeasonEpisodesRow) {
+                            currentActivity.finish();
+                        }
                     }
                 } else if (item instanceof WebPageLink) {
                     WebUtils.openWebLink(currentActivity, ((WebPageLink) item).getUrl());
@@ -728,6 +736,67 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 }
             } catch (Exception e) {
                 if (log.isDebugEnabled()) log.debug("loadInfuseRelatedMovies failed", e);
+            } finally {
+                if (c != null) c.close();
+            }
+        }).start();
+    }
+
+    private void loadInfuseSeasonEpisodes(EpisodeTags epTags) {
+        final Activity activity = getActivity();
+        if (activity == null || epTags == null || !ThemeManager.getInstance(activity).isInfuseTheme()) return;
+
+        final long showId = epTags.getShowId();
+        final int seasonNumber = epTags.getSeason();
+        if (showId <= 0 || seasonNumber < 0) return;
+
+        new Thread(() -> {
+            Cursor c = null;
+            try {
+                if (Looper.myLooper() == null) Looper.prepare();
+                CursorLoader loader = new EpisodesLoader(activity, showId, seasonNumber, true);
+                c = loader.loadInBackground();
+                final List<Episode> seasonEpisodes = new ArrayList<>();
+                if (c != null && c.getCount() > 0) {
+                    VideoCursorMapper mapper = new VideoCursorMapper();
+                    mapper.publicBindColumns(c);
+                    while (c.moveToNext()) {
+                        Object obj = mapper.publicBind(c);
+                        if (obj instanceof Episode) {
+                            seasonEpisodes.add((Episode) obj);
+                        }
+                    }
+                }
+
+                if (!seasonEpisodes.isEmpty() && mHandler != null) {
+                    mHandler.post(() -> {
+                        Activity currentActivity = getActivity();
+                        if (currentActivity == null || currentActivity.isDestroyed() || !isAdded() || mAdapter == null) return;
+
+                        if (mSeasonEpisodesRow != null && mAdapter.indexOf(mSeasonEpisodesRow) != -1) {
+                            mAdapter.remove(mSeasonEpisodesRow);
+                        }
+
+                        PosterImageCardPresenter episodePresenter = new PosterImageCardPresenter(currentActivity);
+                        ArrayObjectAdapter episodesAdapter = new ArrayObjectAdapter(episodePresenter);
+                        for (Episode ep : seasonEpisodes) {
+                            episodesAdapter.add(ep);
+                        }
+
+                        String headerTitle = getString(R.string.episode_season) + " " + seasonNumber;
+                        mSeasonEpisodesRow = new ListRow(new HeaderItem(headerTitle), episodesAdapter);
+
+                        // Inserisci la riga degli episodi PRIMA di Cast and Crew (se presente), altrimenti in coda
+                        int castIdx = (mCastRow != null) ? mAdapter.indexOf(mCastRow) : -1;
+                        if (castIdx != -1) {
+                            mAdapter.add(castIdx, mSeasonEpisodesRow);
+                        } else {
+                            mAdapter.add(mSeasonEpisodesRow);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) log.debug("loadInfuseSeasonEpisodes failed", e);
             } finally {
                 if (c != null) c.close();
             }
@@ -1223,6 +1292,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                     mAdapter.remove(mPostersRow);
                     mAdapter.remove(mBackdropsRow);
                     if (mRelatedRow != null) mAdapter.remove(mRelatedRow);
+                    if (mSeasonEpisodesRow != null) mAdapter.remove(mSeasonEpisodesRow);
                 }
                 mDescriptionPresenter.update(currentVideo);
                 updateDetailsActionsAdapter(activity, currentVideo);
@@ -1447,12 +1517,17 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 dpadPresenter.setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
                     Activity currentActivity = getActivity();
                     if (currentActivity == null) return;
-                    if (item instanceof Video && row != null && row.getId() == 300) {
+                    if (item instanceof Video && row != mFileListRow) {
+                        Video clickedVideo = (Video) item;
+                        if (mVideo != null && clickedVideo.getId() == mVideo.getId()) return;
                         Intent relatedIntent = new Intent(currentActivity, VideoDetailsActivity.class);
-                        relatedIntent.putExtra(VideoDetailsFragment.EXTRA_VIDEO, (Video) item);
+                        relatedIntent.putExtra(VideoDetailsFragment.EXTRA_VIDEO, clickedVideo);
                         relatedIntent.putExtra(VideoDetailsFragment.EXTRA_SHOULD_LOAD_BACKDROP, true);
                         startActivity(relatedIntent);
                         currentActivity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                        if (row == mSeasonEpisodesRow) {
+                            currentActivity.finish();
+                        }
                     } else if (mItemViewClickedListener != null) {
                         mItemViewClickedListener.onItemClicked(itemViewHolder, item, rowViewHolder, row);
                     }
@@ -1938,10 +2013,18 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 if (mDetailsOverviewRow != null && mDetailsOverviewRow.getActionsAdapter() instanceof VideoActionAdapter) {
                     updateInfuseActions((VideoActionAdapter) mDetailsOverviewRow.getActionsAdapter());
                 }
-                if (mHandler != null) {
-                    mHandler.postDelayed(() -> loadInfuseRelatedMovies(tags), 150);
+                if (tags instanceof EpisodeTags) {
+                    if (mHandler != null) {
+                        mHandler.postDelayed(() -> loadInfuseSeasonEpisodes((EpisodeTags) tags), 150);
+                    } else {
+                        loadInfuseSeasonEpisodes((EpisodeTags) tags);
+                    }
                 } else {
-                    loadInfuseRelatedMovies(tags);
+                    if (mHandler != null) {
+                        mHandler.postDelayed(() -> loadInfuseRelatedMovies(tags), 150);
+                    } else {
+                        loadInfuseRelatedMovies(tags);
+                    }
                 }
             }
             // END PULCIX CUSTOM THEME

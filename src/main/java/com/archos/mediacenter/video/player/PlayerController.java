@@ -58,6 +58,7 @@ import android.widget.Toast;
 
 import com.archos.mediacenter.utils.RepeatingImageButton;
 import com.archos.mediacenter.utils.MediaUtils;
+import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.R;
 import com.archos.mediacenter.video.player.tvmenu.TVCardDialog;
 import com.archos.mediacenter.video.player.tvmenu.TVCardView;
@@ -463,11 +464,38 @@ public class PlayerController implements View.OnTouchListener, OnGenericMotionLi
             }
         }
 
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            View[] controlBtns = new View[]{mPauseButton, mForwardButton, mBackwardButton, mFormatButton, fullscreenWithCutoutButton};
+            for (View btn : controlBtns) {
+                if (btn != null) {
+                    btn.setOnFocusChangeListener((view, hasFocus) -> {
+                        float scale = hasFocus ? 1.15f : 1.0f;
+                        view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
+                        if (view instanceof ImageView) {
+                            if (hasFocus) {
+                                ((ImageView) view).setColorFilter(0xFFFF7F02);
+                            } else {
+                                ((ImageView) view).clearColorFilter();
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
         SeekBar mProgress = (SeekBar) v.findViewById(R.id.seek_progress);
         if (mProgress != null) {
             mProgress.setOnSeekBarChangeListener(mProgressListener);
             
             mProgress.setMax(1000);
+
+            if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+                android.content.res.ColorStateList orangeTint = android.content.res.ColorStateList.valueOf(0xFFFF7F02);
+                mProgress.setProgressTintList(orangeTint);
+                mProgress.setThumbTintList(orangeTint);
+                mProgress.setSecondaryProgressTintList(android.content.res.ColorStateList.valueOf(0x80FF7F02));
+                mProgress.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(0x4DFFFFFF));
+            }
         }
 
         View volumeBar = v.findViewById(R.id.volume_bar);
@@ -501,7 +529,12 @@ public class PlayerController implements View.OnTouchListener, OnGenericMotionLi
             if (mVolumeLevel != null) {
                 mVolumeLevel.setMax(mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
                 mVolumeLevel.setOnSeekBarChangeListener(mVolumeLevelListener);
-
+                if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+                    android.content.res.ColorStateList orangeTint = android.content.res.ColorStateList.valueOf(0xFFFF7F02);
+                    mVolumeLevel.setProgressTintList(orangeTint);
+                    mVolumeLevel.setThumbTintList(orangeTint);
+                    mVolumeLevel.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(0x4DFFFFFF));
+                }
             }
             RepeatingImageButton mVolumeUpButton = (RepeatingImageButton) v.findViewById(R.id.volume_up);
             mVolumeUpButton.setOnClickListener(mVolumeUpListener);

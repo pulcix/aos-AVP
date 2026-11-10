@@ -69,6 +69,7 @@ import com.archos.mediacenter.video.leanback.details.VideoDetailsActivity;
 import com.archos.mediacenter.video.leanback.details.VideoDetailsFragment;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
 import com.archos.mediacenter.video.leanback.presenter.ListPresenter;
+import com.archos.mediacenter.video.leanback.presenter.InfuseGridHelper;
 import com.archos.mediacenter.video.leanback.presenter.MetaFileListPresenter;
 import com.archos.mediacenter.video.leanback.presenter.PosterImageCardPresenter;
 import com.archos.mediacenter.video.leanback.presenter.VideoListPresenter;
@@ -425,9 +426,14 @@ public abstract class ListingFragment extends MyVerticalGridFragment implements 
                 throw new IllegalArgumentException("Invalid Display Mode! "+mDisplayMode);
         }
 
-        VerticalGridPresenter vgp = new VerticalGridPresenter(zoom, focusDimmer);
-        vgp.setNumberOfColumns(numberOfColumns);
-        vgp.setShadowEnabled(shadowEnabled);
+        VerticalGridPresenter vgp;
+        if (ThemeManager.getInstance(getActivity()).isInfuseTheme()) {
+            vgp = InfuseGridHelper.createInfuseGridPresenter(numberOfColumns);
+        } else {
+            vgp = new VerticalGridPresenter(zoom, focusDimmer);
+            vgp.setNumberOfColumns(numberOfColumns);
+            vgp.setShadowEnabled(shadowEnabled);
+        }
         return vgp;
     }
 

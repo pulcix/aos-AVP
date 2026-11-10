@@ -119,25 +119,34 @@ public class NetworkListingFragment extends ListingFragment {
         // BEGIN PULCIX CUSTOM THEME
         if (com.archos.mediacenter.video.utils.ThemeManager.getInstance(getContext()).isInfuseTheme()) {
             if (isCurrentDirectoryShortcut) {
-                titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_minus_outline, getString(isCurrentDirectoryIndexed && isHimselfIndexedFolder ? R.string.remove_from_indexed_folders : R.string.remove_from_shortcuts));
+                titleView.setInfuseSearchIconAndText(
+                    R.drawable.ic_infuse_minus_outline,
+                    getString(isCurrentDirectoryIndexed && isHimselfIndexedFolder
+                        ? R.string.remove_from_indexed_folders
+                        : R.string.remove_from_shortcuts));
                 titleView.setOnSearchClickedListener(mOrbClickListener);
                 if (isCurrentDirectoryIndexed && isHimselfIndexedFolder) {
                     removeFromLibrary = true;
                 }
+            } else if (isCurrentDirectoryIndexed) {
+                titleView.setInfuseSearchIconAndText(
+                    R.drawable.ic_infuse_minus_outline,
+                    getString(R.string.remove_from_indexed_folders));
+                titleView.setOnSearchClickedListener(mOrbClickListener);
+                removeFromLibrary = true;
             } else {
-                if (isCurrentDirectoryIndexed) {
-                    titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_minus_outline, getString(R.string.remove_from_indexed_folders));
+                // Mostra sempre il bottone "+" con etichetta chiara per aggiungere la cartella di rete
+                titleView.setInfuseSearchIconAndText(
+                    R.drawable.ic_infuse_plus_outline,
+                    getString(R.string.add_ssh_shortcut));
+                if (canBeIndexed()) {
                     titleView.setOnSearchClickedListener(mOrbClickListener);
-                    removeFromLibrary = true;
                 } else {
-                    if (!canBeIndexed()) {
-                        titleView.setOnSearchClickedListener(null);
-                    } else {
-                        titleView.setInfuseSearchIconAndText(R.drawable.ic_infuse_plus_outline, getString(R.string.add_ssh_shortcut));
-                        titleView.setOnSearchClickedListener(mOrbClickListener);
-                    }
-                    if (mUserHasNoShortcutAtAll)
-                        titleView.setAndShowHintMessage(getString(R.string.help_overlay_network_shortcut_text1_lb));
+                    // Mantieni visibile il bottone "+" anche durante il caricamento o in cartelle navigabili
+                    titleView.setOnSearchClickedListener(mOrbClickListener);
+                }
+                if (mUserHasNoShortcutAtAll) {
+                    titleView.setAndShowHintMessage(getString(R.string.help_overlay_network_shortcut_text1_lb));
                 }
             }
             return;
@@ -236,7 +245,7 @@ public class NetworkListingFragment extends ListingFragment {
     }
 
     protected void askForIndexing() {
-        new AlertDialog.Builder(getActivity())
+        AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setTitle(getTitleForAskForIndexing())
                 .setMessage(getMessageForAskForIndexing())
                 .setPositiveButton(getPositiveForAskForIndexing(), new DialogInterface.OnClickListener() {
@@ -247,7 +256,11 @@ public class NetworkListingFragment extends ListingFragment {
                         ShortcutDb.STATIC.removeShortcut(getActivity(), mUri);
                         NetworkScanner.scanVideos(getActivity(), mUri);
                     }
-                }).setNegativeButton(getNegativeForAskForIndexing(), null).show().getButton(DialogInterface.BUTTON_POSITIVE).requestFocus();
+                }).setNegativeButton(getNegativeForAskForIndexing(), null).create();
+
+        com.archos.mediacenter.video.utils.InfuseDialogHelper.applyInfuseStyleToAlertDialog(dialog, getActivity());
+        dialog.show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).requestFocus();
     }
 
     /** Remove current Uri from the shortcut list */

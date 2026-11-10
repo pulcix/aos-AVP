@@ -194,14 +194,32 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
 
             hideNativeOrbs();
             
+            float density = getResources().getDisplayMetrics().density;
+
+            if (mInfuseSearchContainer != null && mInfuseSearchContainer.getLayoutParams() instanceof RelativeLayout.LayoutParams lpSearch) {
+                lpSearch.removeRule(RelativeLayout.CENTER_VERTICAL);
+                lpSearch.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                lpSearch.topMargin = (int) (8 * density);
+                lpSearch.height = (int) (40 * density);
+                mInfuseSearchContainer.setLayoutParams(lpSearch);
+            }
+
+            if (mInfuseActionsContainer != null && mInfuseActionsContainer.getLayoutParams() instanceof RelativeLayout.LayoutParams lpActions) {
+                lpActions.removeRule(RelativeLayout.CENTER_VERTICAL);
+                lpActions.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                lpActions.topMargin = (int) (8 * density);
+                lpActions.height = (int) (40 * density);
+                mInfuseActionsContainer.setLayoutParams(lpActions);
+            }
+
             if (mHintView != null) {
-                float density = getResources().getDisplayMetrics().density;
                 RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) mHintView.getLayoutParams();
                 if (lp != null) {
                     lp.removeRule(RelativeLayout.CENTER_VERTICAL);
                     lp.removeRule(RelativeLayout.END_OF);
-                    lp.topMargin = (int) (76 * density);
-                    lp.leftMargin = (int) (36 * density);
+                    lp.addRule(RelativeLayout.BELOW, R.id.infuse_search_container);
+                    lp.topMargin = (int) (12 * density);
+                    lp.leftMargin = (int) (0 * density);
                     mHintView.setLayoutParams(lp);
                 }
                 mHintView.applyInfuseStyle();
@@ -627,18 +645,22 @@ public class MyTitleView extends RelativeLayout implements TitleViewAdapter.Prov
     public void setInfuseSearchIconAndText(int iconResId, CharSequence text) {
         if (mInfuseSearchContainer != null) {
             mInfuseSearchContainer.setVisibility(View.VISIBLE);
-        }
-        if (mInfuseSearchIcon != null && iconResId != 0) {
-            mInfuseSearchIcon.setImageResource(iconResId);
-            mInfuseSearchIcon.setVisibility(View.VISIBLE);
-        }
-        if (mInfuseSearchText != null) {
-            if (text != null && text.length() > 0) {
-                mInfuseSearchText.setText(text);
-                mInfuseSearchText.setVisibility(View.VISIBLE);
-            } else {
-                mInfuseSearchText.setVisibility(View.GONE);
+            int tintColor = mInfuseSearchContainer.hasFocus() ? 0xFFFFFFFF : 0xFF999999;
+            if (mInfuseSearchIcon != null && iconResId != 0) {
+                mInfuseSearchIcon.setImageResource(iconResId);
+                mInfuseSearchIcon.setColorFilter(tintColor);
+                mInfuseSearchIcon.setVisibility(View.VISIBLE);
             }
+            if (mInfuseSearchText != null) {
+                if (text != null && text.length() > 0) {
+                    mInfuseSearchText.setText(text);
+                    mInfuseSearchText.setTextColor(tintColor);
+                    mInfuseSearchText.setVisibility(View.VISIBLE);
+                } else {
+                    mInfuseSearchText.setVisibility(View.GONE);
+                }
+            }
+            mInfuseSearchContainer.requestLayout();
         }
     }
     // END PULCIX CUSTOM THEME

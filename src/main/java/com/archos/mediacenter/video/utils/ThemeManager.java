@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.view.View;
 import android.view.Window;
@@ -112,6 +113,13 @@ public class ThemeManager {
      */
     public boolean isInfuseTheme() {
         return THEME_INFUSE.equals(getCurrentTheme());
+    }
+
+    public static Typeface getInfuseTypeface(boolean bold) {
+        return Typeface.create(
+                "sans-serif-condensed",
+                bold ? Typeface.BOLD : Typeface.NORMAL
+        );
     }
     // END PULCIX CUSTOM THEME
     

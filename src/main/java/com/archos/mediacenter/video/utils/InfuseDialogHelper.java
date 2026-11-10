@@ -35,6 +35,16 @@ public class InfuseDialogHelper {
                     windowBg, (int) (16 * density), (int) (16 * density), (int) (16 * density), (int) (16 * density));
             dialog.getWindow().setBackgroundDrawable(insetBg);
             View decor = dialog.getWindow().getDecorView();
+
+            View contentPanel = decor.findViewById(android.R.id.content);
+            if (contentPanel == null) {
+                contentPanel = decor.findViewById(androidx.appcompat.R.id.parentPanel);
+            }
+            if (contentPanel != null) {
+                int pad12 = (int) (12 * density);
+                contentPanel.setPadding(pad12, pad12, pad12, pad12);
+            }
+
             if (decor instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) decor;
                 for (int i = 0; i < vg.getChildCount(); i++) {
@@ -87,9 +97,22 @@ public class InfuseDialogHelper {
 
         if (btn.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) btn.getLayoutParams();
-            lp.leftMargin = (int) (8 * density);
-            lp.rightMargin = (int) (8 * density);
+            lp.leftMargin = (int) (6 * density);
+            lp.rightMargin = (int) (6 * density);
+            lp.topMargin = (int) (6 * density);
+            lp.bottomMargin = (int) (6 * density); // Spazio extra sotto i bottoni Cancel / OK!
             btn.setLayoutParams(lp);
+        }
+
+        // Aumenta anche il padding inferiore e destro della barra contenitore dei bottoni (buttonPanel)
+        if (btn.getParent() instanceof View) {
+            View buttonBar = (View) btn.getParent();
+            buttonBar.setPadding(
+                (int) (16 * density),
+                (int) (8 * density),
+                (int) (18 * density),
+                (int) (8 * density) // Garantisce respiro dal bordo inferiore della card
+            );
         }
 
         btn.setOnFocusChangeListener((v, hasFocus) -> {

@@ -15,10 +15,14 @@
 package com.archos.mediacenter.video.player.tvmenu;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.text.Html;
 import android.text.SpannableString;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +33,7 @@ import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,10 +85,73 @@ public class TVMenuItem extends LinearLayout implements Checkable, TVSlaveView{
             }
         });  
     }
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            View infoView = findViewById(R.id.info_text);
+            if (infoView instanceof TextView) {
+                ((TextView) infoView).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            }
+            View subView = findViewById(R.id.textView1);
+            if (subView instanceof TextView) {
+                ((TextView) subView).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            }
+        }
+    }
+
     public void setFocus(boolean hasFocus){
         if (log.isDebugEnabled()) log.debug("setFocus hasFocus:{}", hasFocus);
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            float density = mContext.getResources().getDisplayMetrics().density;
+            View infoView = findViewById(R.id.info_text);
+
+            if (infoView instanceof TextView) {
+                ((TextView) infoView).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            }
+            View subView = findViewById(R.id.textView1);
+            if (subView instanceof TextView) {
+                ((TextView) subView).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            }
+
+            if (hasFocus) {
+                GradientDrawable pill = new GradientDrawable();
+                pill.setColor(0xFFFF7F02);
+                pill.setCornerRadius(10 * density);
+                setBackground(pill);
+
+                if (infoView instanceof TextView) {
+                    TextView tv = (TextView) infoView;
+                    tv.setTextColor(0xFFFFFFFF);
+                    tv.setTypeface(null, Typeface.BOLD);
+                }
+                if (infoView instanceof RadioButton) {
+                    ((RadioButton) infoView).setButtonTintList(ColorStateList.valueOf(0xFFFFFFFF));
+                } else if (infoView instanceof Switch) {
+                    Switch sw = (Switch) infoView;
+                    sw.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+                    sw.setTrackTintList(ColorStateList.valueOf(0x80FFFFFF));
+                }
+            } else {
+                setBackground(null);
+
+                if (infoView instanceof TextView) {
+                    TextView tv = (TextView) infoView;
+                    tv.setTextColor(0xFFFFFFFF);
+                    tv.setTypeface(null, isChecked() ? Typeface.BOLD : Typeface.NORMAL);
+                }
+                if (infoView instanceof RadioButton) {
+                    ((RadioButton) infoView).setButtonTintList(ColorStateList.valueOf(0xFFFF7F02));
+                } else if (infoView instanceof Switch) {
+                    Switch sw = (Switch) infoView;
+                    sw.setThumbTintList(ColorStateList.valueOf(0xFFFF7F02));
+                    sw.setTrackTintList(ColorStateList.valueOf(0x4DFF7F02));
+                }
+            }
+            return;
+        }
+
         if(hasFocus){
-     
             this.setBackgroundResource(R.color.video_info_next_prev_button_focused);
         }
         else
@@ -105,6 +173,10 @@ public class TVMenuItem extends LinearLayout implements Checkable, TVSlaveView{
             slaveView.setChecked(checked);
         if(findViewById(R.id.info_text)!=null && findViewById(R.id.info_text) instanceof Checkable)
             ((Checkable)findViewById(R.id.info_text)).setChecked(checked);
+
+        if (ThemeManager.getInstance(mContext).isInfuseTheme()) {
+            setFocus(hasFocus());
+        }
     }
 
     public boolean isChecked(){
