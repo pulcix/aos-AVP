@@ -34,7 +34,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -92,7 +91,6 @@ import androidx.palette.graphics.Palette;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.archos.environment.ArchosFeatures;
 import com.archos.environment.ArchosUtils;
 import com.archos.environment.NetworkState;
 import com.archos.filecorelibrary.FileUtils;
@@ -103,7 +101,6 @@ import com.archos.mediacenter.utils.videodb.VideoDbInfo;
 import com.archos.mediacenter.utils.videodb.XmlDb;
 import com.archos.mediacenter.video.CustomApplication;
 import com.archos.mediacenter.video.R;
-import com.archos.mediacenter.video.browser.BootupRecommandationService;
 import com.archos.mediacenter.video.browser.BrowserByIndexedVideos.lists.ListDialog;
 import com.archos.mediacenter.video.browser.Delete;
 import com.archos.mediacenter.video.browser.adapters.mappers.TvshowCursorMapper;
@@ -127,7 +124,6 @@ import com.archos.mediacenter.video.info.VideoInfoCommonClass;
 import com.archos.mediacenter.video.leanback.BackdropTask;
 import com.archos.mediacenter.video.leanback.CompatibleCursorMapperConverter;
 import com.archos.mediacenter.video.leanback.adapter.object.WebPageLink;
-import com.archos.mediacenter.video.leanback.channels.ChannelManager;
 import com.archos.mediacenter.video.leanback.filebrowsing.ListingActivity;
 import com.archos.mediacenter.video.leanback.movies.AllMoviesGridFragment;
 import com.archos.mediacenter.video.leanback.overlay.Overlay;
@@ -160,7 +156,6 @@ import com.archos.mediacenter.video.utils.WebUtils;
 import com.archos.mediaprovider.video.ListTables;
 import com.archos.mediaprovider.video.VideoStore;
 import com.archos.mediaprovider.video.VideoStoreImportImpl;
-import com.archos.mediaprovider.video.VideoStoreInternal;
 import com.archos.mediascraper.BaseTags;
 import com.archos.mediascraper.EpisodeTags;
 import com.archos.mediascraper.MovieTags;
@@ -192,7 +187,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -323,7 +317,6 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     private boolean mShouldDisplayRemoveFromList;
     private boolean mShouldDisplayConfirmDelete = false;
 
-    private boolean isFilePlayable = true;
     private int oldPos = 0;
     private int oldSelectedSubPosition = 0;
 
@@ -355,19 +348,30 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         return context != null && ThemeManager.getInstance(context).isInfuseTheme();
     }
 
+    /** Cached value of the TMDB API key resource; getIdentifier() is a slow reflection-based call
+     *  and this method is invoked once per cast member on every view bind. */
+    private static String sCachedTmdbApiKey;
+
     private static String getTmdbApiKey(Context context) {
+        if (sCachedTmdbApiKey != null) return sCachedTmdbApiKey;
         if (context == null) return DEFAULT_TMDB_API_KEY;
         try {
             int resId = context.getResources().getIdentifier("tmdb_api_key", "string", context.getPackageName());
             if (resId != 0) {
                 String key = context.getString(resId);
                 if (key != null && !key.trim().isEmpty()) {
-                    return key.trim();
+                    return sCachedTmdbApiKey = key.trim();
                 }
             }
         } catch (Exception ignored) {
         }
-        return DEFAULT_TMDB_API_KEY;
+        return sCachedTmdbApiKey = DEFAULT_TMDB_API_KEY;
+    }
+
+    /** Computes whether the current video file can be played. Was previously a field, but always
+     *  written immediately before being read in the same method scope. */
+    private static boolean isCurrentFilePlayable(VideoMetadata mMetadata) {
+        return !(mMetadata != null && mMetadata.getFileSize() == 0 && mMetadata.getVideoTrack() == null && mMetadata.getAudioTrackNb() == 0);
     }
 
     @Override
@@ -611,7 +615,6 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             }
         }
 
-        showTitle(false);
         view.post(() -> {
             if (!isAdded()) return;
             showTitle(false);
@@ -966,7 +969,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             if (activity == null || mVideo == null) return;
 
             VideoMetadata mMetadata = mVideo.getMetadata();
-            isFilePlayable = !(mMetadata != null && mMetadata.getFileSize() == 0 && mMetadata.getVideoTrack() == null && mMetadata.getAudioTrackNb() == 0);
+            boolean isFilePlayable = isCurrentFilePlayable(mMetadata);
 
             final long actionId = action.getId();
             if (actionId == VideoActionAdapter.ACTION_LOCAL_RESUME) {
@@ -1406,6 +1409,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        // nothing to do: the loader is re-created on the next restartLoader call
     }
 
     @Override
@@ -1959,7 +1963,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 }
             }
 
-            VideoDetailsFragment.this.mTrailers = mTaskTrailers;
+            mTrailers = mTaskTrailers;
             mAvailablePosters = (mPosters != null) ? mPosters : new ArrayList<>();
             mAvailableBackdrops = (mBackdrops != null) ? mBackdrops : new ArrayList<>();
 
@@ -2121,6 +2125,26 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         bg.setCornerRadius(14 * density);
         bg.setStroke((int) (1 * density), 0xFF2C2C2E);
         return bg;
+    }
+
+    private static GradientDrawable infusePrimaryButtonBackground(float density) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(10 * density);
+        bg.setColor(0xFFFF7F02);
+        return bg;
+    }
+
+    /** Shared focus animation for Infuse widgets: scale 1.08 on focus, optional gradient stroke. */
+    private static void applyInfuseFocusAnimation(View v, GradientDrawable bgForStroke) {
+        final float density = v.getResources().getDisplayMetrics().density;
+        final int strokeWidth = (int) (2 * density);
+        v.setOnFocusChangeListener((view, hasFocus) -> {
+            float scale = hasFocus ? 1.08f : 1.0f;
+            view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
+            if (bgForStroke != null) {
+                bgForStroke.setStroke(hasFocus ? strokeWidth : 0, 0xFFFF7F02);
+            }
+        });
     }
 
     private void showInfuseBookmarkDialog() {
@@ -2392,11 +2416,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         okBtn.setGravity(Gravity.CENTER);
         okBtn.setPadding((int) (24 * density), (int) (10 * density), (int) (24 * density), (int) (10 * density));
         okBtn.setFocusable(true);
-
-        GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setCornerRadius(10 * density);
-        btnBg.setColor(0xFFFF7F02);
-        okBtn.setBackground(btnBg);
+        okBtn.setBackground(infusePrimaryButtonBackground(density));
 
         okBtn.setOnClickListener(v -> {
             Activity currentActivity = getActivity();
@@ -2542,11 +2562,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         okBtn.setGravity(Gravity.CENTER);
         okBtn.setPadding((int) (24 * density), (int) (10 * density), (int) (24 * density), (int) (10 * density));
         okBtn.setFocusable(true);
-
-        GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setCornerRadius(10 * density);
-        btnBg.setColor(0xFFFF7F02);
-        okBtn.setBackground(btnBg);
+        okBtn.setBackground(infusePrimaryButtonBackground(density));
         okBtn.setOnClickListener(v -> dialog.dismiss());
 
         LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(
@@ -2687,6 +2703,136 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         }, 50);
     }
 
+    private void wireInfuseDpadNavigation(LinearLayout iconRow, LinearLayout primaryRow, View firstPrimaryView) {
+        // Link D-Pad Up/Down
+        View firstIconView = iconRow.getChildCount() > 0 ? iconRow.getChildAt(0) : null;
+        if (firstIconView != null) {
+            int iconId = firstIconView.getId() != View.NO_ID ? firstIconView.getId() : View.generateViewId();
+            firstIconView.setId(iconId);
+            for (int j = 0; j < primaryRow.getChildCount(); j++) {
+                primaryRow.getChildAt(j).setNextFocusUpId(iconId);
+            }
+        }
+        if (firstPrimaryView != null) {
+            int primaryId = firstPrimaryView.getId() != View.NO_ID ? firstPrimaryView.getId() : View.generateViewId();
+            firstPrimaryView.setId(primaryId);
+            for (int j = 0; j < iconRow.getChildCount(); j++) {
+                iconRow.getChildAt(j).setNextFocusDownId(primaryId);
+            }
+        }
+    }
+
+    private void setupInfuseIconAction(final View v, final ImageView iv, final int buttonActionId, final View root) {
+        v.setOnClickListener(v1 -> {
+            Activity currentActivity = getActivity();
+            if (currentActivity == null || mVideo == null) return;
+
+            switch (buttonActionId) {
+                case 0: {
+                    boolean currentlyWatched = mVideo.isWatched() || mIsVideoWatched;
+                    mIsVideoWatched = !currentlyWatched;
+                    if (currentlyWatched) {
+                        DbUtils.markAsNotRead(currentActivity, mVideo);
+                        if (iv != null) iv.setImageResource(R.drawable.ic_eye_outline);
+                    } else {
+                        DbUtils.markAsRead(currentActivity, mVideo);
+                        if (iv != null) iv.setImageResource(R.drawable.trakt_watched);
+                    }
+                    currentActivity.setResult(Activity.RESULT_OK);
+                    break;
+                }
+                case 1: {
+                    if (mVideo.hasScraperData()) {
+                        showInfuseBookmarkDialog();
+                    } else {
+                        Toast.makeText(currentActivity, R.string.scrap_no_info, Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                case 2: {
+                    List<String> subItems = Arrays.asList(getString(R.string.get_subtitles_online), getString(R.string.get_subtitles_on_drive));
+                    List<Runnable> subActions = Arrays.asList(this::performSubtitleDownload, this::performSubtitleChoose);
+                    showInfuseListDialog(getString(R.string.category_languages), subItems, subActions);
+                    break;
+                }
+                case 3: {
+                    StringBuilder infoMsg = new StringBuilder(mVideo.getFilePath() != null ? mVideo.getFilePath() : "");
+                    if (mVideo.getMetadata() != null) {
+                        infoMsg.append("\n\nSize: ").append(Formatter.formatFileSize(currentActivity, mVideo.getMetadata().getFileSize()));
+                    }
+                    showInfuseMessageDialog(getString(R.string.info_tab_file), infoMsg.toString());
+                    break;
+                }
+                case 4: {
+                    List<String> moreLabels = new ArrayList<>();
+                    List<Runnable> moreActions = new ArrayList<>();
+
+                    if (mShouldDisplayRemoveFromList) {
+                        moreLabels.add(getString(R.string.remove_from_list));
+                        moreActions.add(() -> mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_REMOVE_FROM_LIST)));
+                    }
+
+                    if (mVideo.hasScraperData()) {
+                        if (mAvailablePosters != null && !mAvailablePosters.isEmpty()) {
+                            final String posterHeader = getString(!mIsTvEpisode ? R.string.leanback_posters_header : R.string.leanback_season_posters_header);
+                            moreLabels.add(posterHeader);
+                            moreActions.add(() -> showInfuseImagePickerDialog(posterHeader, mAvailablePosters, true));
+                        }
+                        if (mAvailableBackdrops != null && !mAvailableBackdrops.isEmpty()) {
+                            final String backdropHeader = getString(!mIsTvEpisode ? R.string.leanback_backdrops_header : R.string.leanback_tvshow_backdrops_header);
+                            moreLabels.add(backdropHeader);
+                            moreActions.add(() -> showInfuseImagePickerDialog(backdropHeader, mAvailableBackdrops, false));
+                        }
+                        moreLabels.add(getString(R.string.scrap_remove));
+                        moreActions.add(() -> {
+                            Activity a = getActivity();
+                            if (a == null) return;
+                            DbUtils.deleteScraperInfo(a, mVideo);
+                            View logoView = root.findViewById(R.id.infuse_clear_logo);
+                            View titleView = root.findViewById(androidx.leanback.R.id.lb_details_description_title);
+                            if (logoView != null) logoView.setVisibility(View.GONE);
+                            if (titleView != null) titleView.setVisibility(View.VISIBLE);
+                        });
+                    } else {
+                        moreLabels.add(getString(R.string.leanback_scrap));
+                        moreActions.add(() -> mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_SCRAP)));
+                    }
+
+                    moreLabels.add(getString(R.string.video_browser_unindex_file));
+                    moreActions.add(() -> {
+                        Activity a = getActivity();
+                        if (a != null) DbUtils.markAsHiddenByUser(a, mVideo);
+                    });
+
+                    moreLabels.add(getString(R.string.delete));
+                    moreActions.add(() -> deleteFile_async(mVideo));
+
+                    showInfuseListDialog(null, moreLabels, moreActions);
+                    break;
+                }
+                case 5: {
+                    ScraperTrailer bestTrailer = null;
+                    if (mTrailers != null && !mTrailers.isEmpty()) {
+                        for (ScraperTrailer t : mTrailers) {
+                            if (t != null && t.mName != null) {
+                                String nameLower = t.mName.toLowerCase();
+                                if (nameLower.contains("official") || nameLower.contains("trailer")) {
+                                    bestTrailer = t;
+                                    break;
+                                }
+                            }
+                        }
+                        if (bestTrailer == null) {
+                            bestTrailer = mTrailers.get(0);
+                        }
+                    }
+                    playInfuseTrailer(bestTrailer);
+                    break;
+                }
+            }
+        });
+    }
+
     private void updateInfuseActions(VideoActionAdapter adapter) {
         final Activity activity = getActivity();
         if (activity == null || mVideo == null) return;
@@ -2771,10 +2917,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                         v.setFocusable(true);
                         v.setFocusableInTouchMode(false);
                         v.setOnClickListener(v1 -> mOnActionClickedListener.onActionClicked(action));
-                        v.setOnFocusChangeListener((view, hasFocus) -> {
-                            float scale = hasFocus ? 1.08f : 1.0f;
-                            view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
-                        });
+                        applyInfuseFocusAnimation(v, null);
                         primaryRow.addView(v);
                         if (firstPrimaryView == null) firstPrimaryView = v;
                     }
@@ -2823,163 +2966,37 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
                 v.setFocusable(true);
                 v.setFocusableInTouchMode(false);
-                v.setOnFocusChangeListener((view, hasFocus) -> {
-                    float scale = hasFocus ? 1.08f : 1.0f;
-                    view.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
-                });
-
-                v.setOnClickListener(v1 -> {
-                    Activity currentActivity = getActivity();
-                    if (currentActivity == null || mVideo == null) return;
-
-                    switch (buttonActionId) {
-                        case 0: {
-                            boolean currentlyWatched = mVideo.isWatched() || mIsVideoWatched;
-                            mIsVideoWatched = !currentlyWatched;
-                            if (currentlyWatched) {
-                                DbUtils.markAsNotRead(currentActivity, mVideo);
-                                if (iv != null) iv.setImageResource(R.drawable.ic_eye_outline);
-                            } else {
-                                DbUtils.markAsRead(currentActivity, mVideo);
-                                if (iv != null) iv.setImageResource(R.drawable.trakt_watched);
-                            }
-                            currentActivity.setResult(Activity.RESULT_OK);
-                            break;
-                        }
-                        case 1: {
-                            if (mVideo.hasScraperData()) {
-                                showInfuseBookmarkDialog();
-                            } else {
-                                Toast.makeText(currentActivity, R.string.scrap_no_info, Toast.LENGTH_SHORT).show();
-                            }
-                            break;
-                        }
-                        case 2: {
-                            List<String> subItems = Arrays.asList(getString(R.string.get_subtitles_online), getString(R.string.get_subtitles_on_drive));
-                            List<Runnable> subActions = Arrays.asList(this::performSubtitleDownload, this::performSubtitleChoose);
-                            showInfuseListDialog(getString(R.string.category_languages), subItems, subActions);
-                            break;
-                        }
-                        case 3: {
-                            StringBuilder infoMsg = new StringBuilder(mVideo.getFilePath() != null ? mVideo.getFilePath() : "");
-                            if (mVideo.getMetadata() != null) {
-                                infoMsg.append("\n\nSize: ").append(Formatter.formatFileSize(currentActivity, mVideo.getMetadata().getFileSize()));
-                            }
-                            showInfuseMessageDialog(getString(R.string.info_tab_file), infoMsg.toString());
-                            break;
-                        }
-                        case 4: {
-                            List<String> moreLabels = new ArrayList<>();
-                            List<Runnable> moreActions = new ArrayList<>();
-
-                            if (mShouldDisplayRemoveFromList) {
-                                moreLabels.add(getString(R.string.remove_from_list));
-                                moreActions.add(() -> mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_REMOVE_FROM_LIST)));
-                            }
-
-                            if (mVideo.hasScraperData()) {
-                                if (mAvailablePosters != null && !mAvailablePosters.isEmpty()) {
-                                    final String posterHeader = getString(!mIsTvEpisode ? R.string.leanback_posters_header : R.string.leanback_season_posters_header);
-                                    moreLabels.add(posterHeader);
-                                    moreActions.add(() -> showInfuseImagePickerDialog(posterHeader, mAvailablePosters, true));
-                                }
-                                if (mAvailableBackdrops != null && !mAvailableBackdrops.isEmpty()) {
-                                    final String backdropHeader = getString(!mIsTvEpisode ? R.string.leanback_backdrops_header : R.string.leanback_tvshow_backdrops_header);
-                                    moreLabels.add(backdropHeader);
-                                    moreActions.add(() -> showInfuseImagePickerDialog(backdropHeader, mAvailableBackdrops, false));
-                                }
-                                moreLabels.add(getString(R.string.scrap_remove));
-                                moreActions.add(() -> {
-                                    Activity a = getActivity();
-                                    if (a == null) return;
-                                    DbUtils.deleteScraperInfo(a, mVideo);
-                                    View logoView = root.findViewById(R.id.infuse_clear_logo);
-                                    View titleView = root.findViewById(androidx.leanback.R.id.lb_details_description_title);
-                                    if (logoView != null) logoView.setVisibility(View.GONE);
-                                    if (titleView != null) titleView.setVisibility(View.VISIBLE);
-                                });
-                            } else {
-                                moreLabels.add(getString(R.string.leanback_scrap));
-                                moreActions.add(() -> mOnActionClickedListener.onActionClicked(new Action(VideoActionAdapter.ACTION_SCRAP)));
-                            }
-
-                            moreLabels.add(getString(R.string.video_browser_unindex_file));
-                            moreActions.add(() -> {
-                                Activity a = getActivity();
-                                if (a != null) DbUtils.markAsHiddenByUser(a, mVideo);
-                            });
-
-                            moreLabels.add(getString(R.string.delete));
-                            moreActions.add(() -> deleteFile_async(mVideo));
-
-                            showInfuseListDialog(null, moreLabels, moreActions);
-                            break;
-                        }
-                        case 5: {
-                            ScraperTrailer bestTrailer = null;
-                            if (mTrailers != null && !mTrailers.isEmpty()) {
-                                for (ScraperTrailer t : mTrailers) {
-                                    if (t != null && t.mName != null) {
-                                        String nameLower = t.mName.toLowerCase();
-                                        if (nameLower.contains("official") || nameLower.contains("trailer")) {
-                                            bestTrailer = t;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (bestTrailer == null) {
-                                    bestTrailer = mTrailers.get(0);
-                                }
-                            }
-                            playInfuseTrailer(bestTrailer);
-                            break;
-                        }
-                    }
-                });
+                applyInfuseFocusAnimation(v, null);
+                setupInfuseIconAction(v, iv, buttonActionId, root);
                 iconRow.addView(v);
             }
 
-        iconRow.setVisibility(View.VISIBLE);
-        primaryRow.setVisibility(View.VISIBLE);
-        if (iconRow.getLayoutParams() != null) {
-            iconRow.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            iconRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
-        if (primaryRow.getLayoutParams() != null) {
-            primaryRow.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            primaryRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
-        iconRow.requestLayout();
-        primaryRow.requestLayout();
-        infuseActionsContainer.requestLayout();
-
-        // Link D-Pad Up/Down
-        View firstIconView = iconRow.getChildCount() > 0 ? iconRow.getChildAt(0) : null;
-        if (firstIconView != null) {
-            int iconId = firstIconView.getId() != View.NO_ID ? firstIconView.getId() : View.generateViewId();
-            firstIconView.setId(iconId);
-            for (int j = 0; j < primaryRow.getChildCount(); j++) {
-                primaryRow.getChildAt(j).setNextFocusUpId(iconId);
+            iconRow.setVisibility(View.VISIBLE);
+            primaryRow.setVisibility(View.VISIBLE);
+            if (iconRow.getLayoutParams() != null) {
+                iconRow.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                iconRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
             }
-        }
-        if (firstPrimaryView != null) {
-            int primaryId = firstPrimaryView.getId() != View.NO_ID ? firstPrimaryView.getId() : View.generateViewId();
-            firstPrimaryView.setId(primaryId);
-            for (int j = 0; j < iconRow.getChildCount(); j++) {
-                iconRow.getChildAt(j).setNextFocusDownId(primaryId);
+            if (primaryRow.getLayoutParams() != null) {
+                primaryRow.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                primaryRow.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
             }
-        }
+            iconRow.requestLayout();
+            primaryRow.requestLayout();
+            infuseActionsContainer.requestLayout();
 
-        if (hadIconFocus && focusedIconIndex >= 0 && focusedIconIndex < iconRow.getChildCount()) {
-            final View toRestore = iconRow.getChildAt(focusedIconIndex);
-            toRestore.post(toRestore::requestFocus);
-        } else if (firstPrimaryView != null) {
-            final View toFocus = firstPrimaryView;
-            toFocus.post(toFocus::requestFocus);
-            toFocus.postDelayed(toFocus::requestFocus, 120);
-        }
+            wireInfuseDpadNavigation(iconRow, primaryRow, firstPrimaryView);
 
-        root.requestLayout();
+            if (hadIconFocus && focusedIconIndex >= 0 && focusedIconIndex < iconRow.getChildCount()) {
+                final View toRestore = iconRow.getChildAt(focusedIconIndex);
+                toRestore.post(toRestore::requestFocus);
+            } else if (firstPrimaryView != null) {
+                final View toFocus = firstPrimaryView;
+                toFocus.post(toFocus::requestFocus);
+                toFocus.postDelayed(toFocus::requestFocus, 120);
+            }
+
+            root.requestLayout();
         }
         if (mOverviewRowPresenter != null) {
             mOverviewRowPresenter.updateBackgroundColor(Color.TRANSPARENT);
@@ -3243,7 +3260,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         }
     }
 
-    public void showSubtitleDialog(SubtitleManager downloader) {
+    private void showSubtitleDialog(SubtitleManager downloader) {
         mDialogRetrieveSubtitles = new DialogRetrieveSubtitles();
         mDialogRetrieveSubtitles.show(getParentFragmentManager(), null);
         mDialogRetrieveSubtitles.setDownloader(downloader);
@@ -3492,44 +3509,8 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
         delete.startDeleteProcess(video.getFileUri());
     }
 
-    private void deleteScraperInfo(Video video) {
-        Activity activity = getActivity();
-        if (video == null || activity == null) return;
-        if (log.isDebugEnabled()) log.debug("deleteScraperInfo: {}", video.getFileUri());
-        ContentValues values = new ContentValues(2);
-        values.put(VideoStore.Video.VideoColumns.ARCHOS_MEDIA_SCRAPER_ID, "-1");
-        values.put(VideoStore.Video.VideoColumns.ARCHOS_MEDIA_SCRAPER_TYPE, "-1");
-        final String selection = VideoStore.MediaColumns._ID + "=?";
-        final String[] selectionArgs = new String[]{Long.toString(video.getId())};
-
-        activity.getContentResolver().update(VideoStore.Video.Media.EXTERNAL_CONTENT_URI, values, selection, selectionArgs);
-        delete = new Delete(null, activity);
-        deleteUrisList = Collections.singletonList(video.getFileUri());
-        delete.deleteAssociatedNfoFiles(video.getFileUri());
-    }
-
-    private void unindexRemoteVideo(Video video) {
-        Activity activity = getActivity();
-        if (activity == null || mVideo == null) return;
-        int numberDeleted = activity.getContentResolver().delete(VideoStoreInternal.FILES_SCANNED,
-                VideoStore.MediaColumns.DATA + " = ?",
-                new String[]{mVideo.getFilePath()});
-        if (ArchosFeatures.isAndroidTV(getContext())) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                Intent intent = new Intent(BootupRecommandationService.UPDATE_ACTION);
-                intent.setPackage(ArchosUtils.getGlobalContext().getPackageName());
-                activity.sendBroadcast(intent);
-            } else {
-                ChannelManager.refreshChannels(getContext());
-            }
-        }
-        if (numberDeleted != 1) {
-            Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private List<String> getWebLinks(BaseTags tags) {
-        List<String> list = new LinkedList<>();
+        List<String> list = new ArrayList<>();
         Activity activity = getActivity();
         if (activity == null || tags == null) return list;
 
@@ -3581,7 +3562,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             case KeyEvent.KEYCODE_MEDIA_PLAY:
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 VideoMetadata mMetadata = mVideo.getMetadata();
-                isFilePlayable = !(mMetadata != null && mMetadata.getFileSize() == 0 && mMetadata.getVideoTrack() == null && mMetadata.getAudioTrackNb() == 0);
+                boolean isFilePlayable = isCurrentFilePlayable(mMetadata);
                 if (isFilePlayable) {
                     startAds(REQUEST_CODE_RESUME_AFTER_ADS_ACTIVITY);
                 } else {
@@ -3707,12 +3688,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
 
             card.setFocusable(true);
             card.setFocusableInTouchMode(false);
-            final int strokeWidth = (int) (2 * density);
-            card.setOnFocusChangeListener((v, hasFocus) -> {
-                float scale = hasFocus ? 1.08f : 1.0f;
-                v.animate().scaleX(scale).scaleY(scale).setDuration(150).start();
-                bg.setStroke(hasFocus ? strokeWidth : 0, hasFocus ? 0xFFFF7F02 : 0);
-            });
+            applyInfuseFocusAnimation(card, bg);
 
             FrameLayout topFrame = new FrameLayout(context);
             topFrame.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, imgHeight));
