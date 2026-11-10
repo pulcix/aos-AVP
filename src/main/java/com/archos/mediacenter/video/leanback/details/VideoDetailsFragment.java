@@ -217,6 +217,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     public static final int REQUEST_CODE_RESUME_AFTER_ADS_ACTIVITY = 988;
     public static final int REQUEST_CODE_PLAY_FROM_BEGIN_AFTER_ADS_ACTIVITY = 989;
     public static final int PLAY_ACTIVITY_REQUEST_CODE = 990;
+    public static final int REQUEST_CODE_SCRAP = 991;
 
     private static final int INDEX_MAIN = 0;
     private static final int INDEX_FILELIST = 1;
@@ -229,7 +230,7 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
     private static final String TMDB_IMAGE_W185_URL = "https://image.tmdb.org/t/p/w185";
     private static final String TMDB_IMAGE_W500_URL = "https://image.tmdb.org/t/p/w500";
     private static final int MAX_RELATED_CANDIDATES = 40;
-    private static final int MAX_RELATED_RESULTS = 12;
+    private static final int MAX_RELATED_RESULTS = 5;
 
     /** The video for which we are displaying the details. This object is updated each time we have a DB update */
     private Video mVideo;
@@ -689,22 +690,31 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                         Video v = (Video) mapper.publicBind(c);
                         if (v == null || v.getId() == currentVideoId) continue;
                         checked++;
+                        int genreMatches = 0;
                         int score = 0;
                         BaseTags vTags = v.getFullScraperTags(activity);
                         if (vTags instanceof VideoTags) {
                             VideoTags vVt = (VideoTags) vTags;
                             if (vVt.getGenresFormatted() != null && !currentGenres.isEmpty()) {
                                 for (String g : vVt.getGenresFormatted().split(",")) {
-                                    if (currentGenres.contains(g.trim().toLowerCase())) score += 3;
+                                    if (currentGenres.contains(g.trim().toLowerCase())) {
+                                        genreMatches++;
+                                        score += 4;
+                                    }
                                 }
                             }
                             if (vVt.getDirectors() != null && !currentDirectors.isEmpty()) {
                                 for (String d : vVt.getDirectors()) {
-                                    if (d != null && currentDirectors.contains(d.trim().toLowerCase())) score += 5;
+                                    if (d != null && currentDirectors.contains(d.trim().toLowerCase())) {
+                                        score += 3;
+                                    }
                                 }
                             }
                         }
-                        scoredList.add(new Pair<>(v, score));
+                        // Aggiungi SOLO se condivide davvero almeno un genere (o se il film corrente non ha generi ma ha lo stesso regista)
+                        if (genreMatches > 0 || (currentGenres.isEmpty() && score > 0)) {
+                            scoredList.add(new Pair<>(v, score));
+                        }
                     }
                 }
 
@@ -1031,9 +1041,12 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
                 if (!NetworkState.isNetworkConnected(activity)) {
                     Toast.makeText(activity, R.string.scrap_no_network, Toast.LENGTH_SHORT).show();
                 } else {
+                    if (mVideo != null && (!mVideo.isIndexed() || mVideo.getId() <= 0)) {
+                        com.archos.mediaprovider.video.VideoStore.requestIndexing(mVideo.getFileUri(), activity);
+                    }
                     Intent intent = new Intent(activity, ManualVideoScrappingActivity.class);
                     intent.putExtra(ManualVideoScrappingActivity.EXTRA_VIDEO, mVideo);
-                    startActivity(intent);
+                    startActivityForResult(intent, REQUEST_CODE_SCRAP);
                 }
             } else if (actionId == VideoActionAdapter.ACTION_UNSCRAP) {
                 DbUtils.deleteScraperInfo(activity, mVideo);
@@ -3050,6 +3063,14 @@ public class VideoDetailsFragment extends DetailsFragmentWithLessTopOffset imple
             }
         } else if (requestCode == PLAY_ACTIVITY_REQUEST_CODE) {
             ExternalPlayerResultListener.getInstance().onActivityResult(requestCode, resultCode, data);
+        } else if (requestCode == REQUEST_CODE_SCRAP) {
+            if (log.isDebugEnabled()) log.debug("Returned from ManualVideoScrappingActivity, reloading video details");
+            mFirstOnResume = true;
+            mShouldUpdateRemoteResume = true;
+            Activity activity = getActivity();
+            if (activity != null) {
+                LoaderManager.getInstance(this).restartLoader(1, null, this);
+            }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }

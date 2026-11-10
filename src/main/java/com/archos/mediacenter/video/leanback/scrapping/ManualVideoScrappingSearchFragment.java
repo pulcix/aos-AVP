@@ -208,6 +208,7 @@ public class ManualVideoScrappingSearchFragment extends ManualScrappingSearchFra
                         @Override
                         public void run() {
                             progressDialog.dismiss();
+                            getActivity().setResult(android.app.Activity.RESULT_OK);
                             getActivity().finish();
                         }
                     });

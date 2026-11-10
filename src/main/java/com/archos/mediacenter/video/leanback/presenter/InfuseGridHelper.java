@@ -23,7 +23,7 @@ public class InfuseGridHelper {
                 super.initializeGridViewHolder(vh);
                 VerticalGridView gridView = vh.getGridView();
                 if (gridView != null) {
-                    setupInfuseGridView(gridView);
+                    setupInfuseGridView(gridView, numColumns);
                 }
             }
         };
@@ -33,6 +33,10 @@ public class InfuseGridHelper {
     }
 
     public static void setupInfuseGridView(VerticalGridView gridView) {
+        setupInfuseGridView(gridView, 6);
+    }
+
+    public static void setupInfuseGridView(VerticalGridView gridView, int numColumns) {
         if (gridView == null) return;
         if (!ThemeManager.getInstance(gridView.getContext()).isInfuseTheme()) return;
 
@@ -73,6 +77,37 @@ public class InfuseGridHelper {
 
         gridView.setFocusDrawingOrderEnabled(true);
         gridView.setAnimateChildLayout(false);
+
+        // AUTO-WRAP CONTINUO TRA LE RIGHE (Stile Infuse tvOS)
+        if (numColumns > 1) {
+            gridView.setOnKeyInterceptListener(event -> {
+                if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                    int keyCode = event.getKeyCode();
+                    if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT) {
+                        RecyclerView.Adapter<?> adapter = gridView.getAdapter();
+                        if (adapter == null) return false;
+                        int count = adapter.getItemCount();
+                        int currentPos = gridView.getSelectedPosition();
+                        if (currentPos == RecyclerView.NO_POSITION || count <= 1) return false;
+
+                        if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
+                            // Se siamo sull'ultima colonna della riga e c'è un elemento successivo
+                            if ((currentPos % numColumns == numColumns - 1) && (currentPos + 1 < count)) {
+                                gridView.setSelectedPositionSmooth(currentPos + 1);
+                                return true;
+                            }
+                        } else if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT) {
+                            // Se siamo sulla prima colonna di una riga successiva alla prima
+                            if ((currentPos % numColumns == 0) && (currentPos - 1 >= 0)) {
+                                gridView.setSelectedPositionSmooth(currentPos - 1);
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            });
+        }
     }
 }
 // END PULCIX CUSTOM THEME

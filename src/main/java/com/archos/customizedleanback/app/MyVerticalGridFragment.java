@@ -51,6 +51,7 @@ public class MyVerticalGridFragment extends MyBrandedFragment {
     private OnItemViewSelectedListener mOnItemViewSelectedListener;
     private OnItemViewClickedListener mOnItemViewClickedListener;
     private int mSelectedPosition = -1;
+    private boolean mIsTitleShown = true;
 
     private String mEmptyMessage; // ARCHOS ADDED
     private TextView mEmptyView; // ARCHOS ADDED
@@ -143,13 +144,38 @@ public class MyVerticalGridFragment extends MyBrandedFragment {
         if (mGridViewHolder == null) {
             return;
         }
-        if (getContext() != null && ThemeManager.getInstance(getContext()).isInfuseTheme()) {
-            return;
-        }
         if (mGridViewHolder.getGridView().findViewHolderForAdapterPosition(mSelectedPosition) == null) {
             return;
         }
-        if (!mGridViewHolder.getGridView().hasPreviousViewInSameRow(mSelectedPosition)) {
+        boolean shouldShow = !mGridViewHolder.getGridView().hasPreviousViewInSameRow(mSelectedPosition);
+        if (getContext() != null && ThemeManager.getInstance(getContext()).isInfuseTheme()) {
+            if (shouldShow != mIsTitleShown) {
+                mIsTitleShown = shouldShow;
+                View titleView = getTitleView();
+                if (titleView != null) {
+                    titleView.animate().cancel();
+                    titleView.animate()
+                        .alpha(shouldShow ? 1f : 0f)
+                        .translationY(shouldShow ? 0f : -titleView.getHeight())
+                        .setDuration(200)
+                        .withEndAction(() -> {
+                            if (!shouldShow) {
+                                titleView.setFocusable(false);
+                                if (titleView instanceof ViewGroup vg) {
+                                     vg.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                                }
+                            } else {
+                                if (titleView instanceof ViewGroup vg) {
+                                    vg.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+                                }
+                            }
+                        })
+                        .start();
+                }
+            }
+            return;
+        }
+        if (shouldShow) {
             showTitle(true);
         } else {
             showTitle(false);

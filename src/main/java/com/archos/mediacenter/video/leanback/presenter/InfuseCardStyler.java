@@ -1,14 +1,17 @@
 // BEGIN PULCIX CUSTOM THEME
 package com.archos.mediacenter.video.leanback.presenter;
 
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import androidx.leanback.widget.ImageCardView;
-import androidx.leanback.widget.BaseCardView;
-import com.archos.mediacenter.video.R;
-import com.archos.mediacenter.video.utils.ThemeManager;
+import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.leanback.widget.BaseCardView;
+import androidx.leanback.widget.ImageCardView;
+import com.archos.mediacenter.video.R;
+import com.archos.mediacenter.video.utils.ThemeManager;
 
 public class InfuseCardStyler {
 
@@ -44,33 +47,37 @@ public class InfuseCardStyler {
             // Riduciamo gli spazi vuoti e padding laterali tra la locandina e il titolo (Stile Infuse)
             infoField.setMinimumHeight(0);
             float density = cardView.getResources().getDisplayMetrics().density;
-            int paddingHorizontalPx = (int) (0 * density); // <--- Imposta qui il padding Left/Right in dp solo per Infuse (es. 0dp)
+            int paddingHorizontalPx = (int) (0 * density);
             infoField.setPadding(paddingHorizontalPx, (int)(6 * density), paddingHorizontalPx, (int)(2 * density));
             
             // Personalizzazione del Titolo della Card (Film / Serie TV)
             View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
-            if (titleText instanceof android.widget.TextView tv) {
+            if (titleText instanceof TextView tv) {
                 if (tv.getLayoutParams() != null) {
                     tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                 }
                 tv.setTextColor(0xFFFFFFFF); // Bianco puro per il titolo film/serie
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 17);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
                 tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
             }
 
-            // Rimuoviamo l'ingombro vuoto in altezza del content_text secondario se vuoto
+            // Usiamo INVISIBLE invece di GONE quando il testo è vuoto per mantenere altezza uniforme a tutte le card
             View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
-            if (contentText instanceof android.widget.TextView tv) {
+            if (contentText instanceof TextView tv) {
                 if (tv.getLayoutParams() != null) {
                     tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                 }
                 tv.setTextColor(0xFF777777); // Colore metadato grigio scuro (#777777) stile Infuse
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
                 tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
                 CharSequence text = tv.getText();
-                tv.setVisibility((text == null || text.toString().trim().isEmpty()) ? View.GONE : View.VISIBLE);
+                tv.setVisibility((text == null || text.toString().trim().isEmpty()) ? View.INVISIBLE : View.VISIBLE);
             }
         }
         
@@ -85,9 +92,11 @@ public class InfuseCardStyler {
                 titleParent.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                 titleParent.setBackground(null);
             }
-            if (titleView instanceof android.widget.TextView tv) {
+            if (titleView instanceof TextView tv) {
                 tv.setTextColor(0xFF999999); // Grigio #999999 per le cartelle/categorie
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16); // font size
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER);
                 tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
             }
@@ -100,17 +109,21 @@ public class InfuseCardStyler {
             textviews.setBackground(null);
 
             View primary = textviews.findViewById(R.id.primary);
-            if (primary instanceof android.widget.TextView tv) {
+            if (primary instanceof TextView tv) {
                 tv.setTextColor(0xFFFFFFFF); // Bianco #FFFFFF
                 tv.setTypeface(null, android.graphics.Typeface.BOLD);
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER);
             }
 
             View secondary = textviews.findViewById(R.id.secondary);
-            if (secondary instanceof android.widget.TextView tv) {
+            if (secondary instanceof TextView tv) {
                 tv.setTextColor(0xFF8E8E93); // Grigio #8E8E93
-                tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER);
             }
 
@@ -183,7 +196,7 @@ public class InfuseCardStyler {
             View infoFieldView = v.findViewById(androidx.leanback.R.id.info_field);
             if (infoFieldView != null) {
                 View contentTv = infoFieldView.findViewById(androidx.leanback.R.id.content_text);
-                if (contentTv instanceof android.widget.TextView tv) {
+                if (contentTv instanceof TextView tv) {
                     tv.setTextColor(hasFocus ? 0xFFD1D1D6 : 0xFF777777);
                 }
             }
@@ -217,16 +230,29 @@ public class InfuseCardStyler {
 
         View infoField = cardView.findViewById(androidx.leanback.R.id.info_field);
         if (infoField != null) {
-            View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
-            if (contentText instanceof android.widget.TextView tv) {
+            View titleText = infoField.findViewById(androidx.leanback.R.id.title_text);
+            if (titleText instanceof TextView tv) {
                 if (tv.getLayoutParams() != null && tv.getLayoutParams().width != ViewGroup.LayoutParams.MATCH_PARENT) {
                     tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
                 }
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
+                tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+                tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
+            }
+
+            View contentText = infoField.findViewById(androidx.leanback.R.id.content_text);
+            if (contentText instanceof TextView tv) {
+                if (tv.getLayoutParams() != null && tv.getLayoutParams().width != ViewGroup.LayoutParams.MATCH_PARENT) {
+                    tv.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                }
+                tv.setMaxLines(1);
+                tv.setEllipsize(TextUtils.TruncateAt.END);
                 tv.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
                 tv.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
                 CharSequence text = tv.getText();
                 if (text == null || text.toString().trim().isEmpty()) {
-                    tv.setVisibility(View.GONE);
+                    tv.setVisibility(View.INVISIBLE);
                 } else {
                     tv.setVisibility(View.VISIBLE);
                     tv.setTextColor(hasFocus ? 0xFFD1D1D6 : 0xFF777777);

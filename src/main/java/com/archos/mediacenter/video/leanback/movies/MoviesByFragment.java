@@ -59,6 +59,7 @@ import com.archos.mediacenter.video.leanback.CompatibleCursorMapperConverter;
 import com.archos.mediacenter.video.leanback.VideoViewClickedListener;
 // BEGIN PULCIX DPAD INTEGRATION
 import com.archos.mediacenter.video.leanback.presenter.CustomDpadListRowPresenter;
+import com.archos.mediacenter.video.leanback.presenter.InfuseHeadersHelper;
 // END PULCIX DPAD INTEGRATION
 import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
@@ -133,6 +134,10 @@ public abstract class MoviesByFragment extends BrowseSupportFragment implements 
         } else {
             throw new IllegalArgumentException("Did not find R.id.browse_frame in BrowseFragment! Need to update the emptyview hack!");
         }
+
+        // BEGIN PULCIX CUSTOM THEME
+        InfuseHeadersHelper.setupInfuseHeaders(this, view);
+        // END PULCIX CUSTOM THEME
     }
 
     @Override
