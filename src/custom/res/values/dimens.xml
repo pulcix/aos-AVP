@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<resources>
+    <dimen name="infuse_card_corner_radius">10dp</dimen>
+    <dimen name="infuse_card_border_width">3dp</dimen>
+    <dimen name="infuse_row_item_spacing">28dp</dimen>
+    <dimen name="infuse_row_edge_spacing">48dp</dimen>
+</resources>

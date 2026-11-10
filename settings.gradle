@@ -1,0 +1,23 @@
+// settings.gradle
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = 'Video'  // This names your root project
+
+// Define library modules with absolute paths
+include ':FileCoreLibrary'
+project(':FileCoreLibrary').projectDir = new File(settingsDir.parentFile, 'FileCoreLibrary')
+
+include ':MediaLib'
+project(':MediaLib').projectDir = new File(settingsDir.parentFile, 'MediaLib')

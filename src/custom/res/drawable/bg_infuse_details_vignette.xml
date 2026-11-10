@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Layer 1: Gradiente Verticale (sfumatura soffice nei 28% inferiori dello schermo) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#FF000000"
+                android:centerColor="#80000000"
+                android:centerY="0.35"
+                android:endColor="#00000000"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Layer 2: Gradiente Orizzontale (da sinistra verso destra) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#D9000000"
+                android:centerColor="#80000000"
+                android:endColor="#00000000"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

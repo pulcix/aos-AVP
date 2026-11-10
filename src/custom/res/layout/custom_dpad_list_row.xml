@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="24dp"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- BEGIN PULCIX CUSTOM THEME -->
+    <TextView
+        android:id="@+id/custom_row_header_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/infuse_row_edge_spacing"
+        android:layout_marginBottom="8dp"
+        android:padding="0dp"
+        android:textColor="#888888"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-medium" />
+
+<com.rubensousa.dpadrecyclerview.DpadRecyclerView
+    android:id="@+id/custom_dpad_row_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true" />
+<!-- END PULCIX CUSTOM THEME -->
+
+</LinearLayout>

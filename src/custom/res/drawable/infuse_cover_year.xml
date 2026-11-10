@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#2DB309"
+                android:endColor="#77E333"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:width="64dp"
+        android:height="64dp"
+        android:gravity="center">
+        <vector
+            android:width="64dp"
+            android:height="64dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <!-- Corpo del calendario con angoli arrotondati -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.5"
+                android:strokeLineJoin="round"
+                android:pathData="M5,5 h14 a2,2 0 0 1 2,2 v13 a2,2 0 0 1 -2,2 H5 a2,2 0 0 1 -2,-2 V7 a2,2 0 0 1 2,-2 z" />
+
+            <!-- Anelli/Rilegatura superiore -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.5"
+                android:strokeLineCap="round"
+                android:pathData="M8,3 v4 M16,3 v4" />
+
+            <!-- Linea separatrice intestazione (mese/anno) -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.5"
+                android:strokeLineCap="round"
+                android:pathData="M3,10 h18" />
+
+            <!-- Trattini interni (giorni) accorciati e centrati -->
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="1.5"
+                android:strokeLineCap="round"
+                android:pathData="M7.5,14 h1 M11.5,14 h1 M15.5,14 h1 M7.5,18 h1 M11.5,18 h1 M15.5,18 h1" />
+        </vector>
+    </item>
+</layer-list>
