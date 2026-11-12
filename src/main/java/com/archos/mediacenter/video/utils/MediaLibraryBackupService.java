@@ -19,15 +19,13 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ServiceInfo;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
-import android.os.Environment;
 import android.os.IBinder;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.ServiceCompat;
 
 import com.archos.mediacenter.video.R;
 import com.archos.mediaprovider.video.VideoOpenHelper;
@@ -100,7 +98,6 @@ public class MediaLibraryBackupService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (log.isDebugEnabled()) log.debug("onStartCommand: intent={}", intent);
 
-        //startForeground(NOTIFICATION_ID, nb.build());
         if (intent != null) {
             String action = intent.getAction();
             if (ACTION_EXPORT.equals(action)) {
@@ -245,6 +242,19 @@ public class MediaLibraryBackupService extends Service {
                 if (log.isDebugEnabled()) log.debug("exportMediaLibrary: shortcuts2 database not found (no saved shortcuts)");
             }
 
+            // Export shared preferences
+            try {
+                File prefsFile = new File(getApplicationInfo().dataDir, "shared_prefs/" + getPackageName() + "_preferences.xml");
+                if (!prefsFile.exists()) {
+                    prefsFile = new File(getApplicationInfo().dataDir, "shared_prefs/org.courville.nova_preferences.xml");
+                }
+                if (prefsFile.exists()) {
+                    addFileToZip(zos, prefsFile, "shared_prefs_backup.xml");
+                }
+            } catch (Exception e) {
+                log.warn("exportMediaLibrary: failed to export shared_prefs", e);
+            }
+
             // Export poster directory
             File posterDir = MediaScraper.getPosterDirectory(this);
             if (posterDir.exists()) {
@@ -286,11 +296,11 @@ public class MediaLibraryBackupService extends Service {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (entry.getName().equals(VERSION_FILE)) {
+                if (entry.getName().equals(VERSION_FILE) || entry.getName().endsWith("/" + VERSION_FILE)) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
                     String versionStr = reader.readLine();
                     try {
-                        backupDbVersion = Integer.parseInt(versionStr.trim());
+                        if (versionStr != null) backupDbVersion = Integer.parseInt(versionStr.trim());
                     } catch (NumberFormatException e) {
                         log.error("importMediaLibrary: invalid version format: {}", versionStr, e);
                     }
@@ -307,7 +317,7 @@ public class MediaLibraryBackupService extends Service {
             throw new IOException("Backup file does not contain version information");
         }
 
-        if (backupDbVersion != currentDbVersion) {
+        if (backupDbVersion > currentDbVersion || backupDbVersion <= 0) {
             throw new IOException("Incompatible database version. Backup version: " + backupDbVersion +
                     ", Current version: " + currentDbVersion + ". Cannot import.");
         }
@@ -316,64 +326,147 @@ public class MediaLibraryBackupService extends Service {
         if (log.isDebugEnabled()) log.debug("importMediaLibrary: performing FULL CLEANUP of existing data");
         cleanupExistingData();
 
-        // STEP 3: Extract all files from backup
-        if (log.isDebugEnabled()) log.debug("importMediaLibrary: extracting files from backup");
+        // STEP 3: Streamed Extraction with 8192 bytes buffer and per-entry exception handling
+        if (log.isDebugEnabled()) log.debug("importMediaLibrary: extracting files from backup with buffer");
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
             byte[] buffer = new byte[BUFFER_SIZE];
 
             while ((entry = zis.getNextEntry()) != null) {
                 String fileName = entry.getName();
-                if (log.isDebugEnabled()) log.debug("importMediaLibrary: extracting {}", fileName);
+                if (log.isDebugEnabled()) log.debug("importMediaLibrary: processing zip entry {}", fileName);
 
                 // Skip version file
-                if (fileName.equals(VERSION_FILE)) {
+                if (fileName.equals(VERSION_FILE) || fileName.endsWith("/" + VERSION_FILE)) {
                     zis.closeEntry();
                     continue;
                 }
 
-                File outputFile = null;
+                try {
+                    File outputFile = null;
 
-                if (fileName.equals(DATABASE_NAME)) {
-                    outputFile = getDatabasePath(DATABASE_NAME);
-                } else if (fileName.equals(CREDENTIALS_DB_NAME)) {
-                    outputFile = getDatabasePath(CREDENTIALS_DB_NAME);
-                } else if (fileName.equals(SHORTCUTS_DB_NAME)) {
-                    outputFile = getDatabasePath(SHORTCUTS_DB_NAME);
-                } else if (fileName.equals(SHORTCUTS2_DB_NAME)) {
-                    outputFile = getDatabasePath(SHORTCUTS2_DB_NAME);
-                } else if (fileName.startsWith("scraper_posters/")) {
-                    String relativePath = fileName.substring("scraper_posters/".length());
-                    outputFile = new File(MediaScraper.getPosterDirectory(this), relativePath);
-                } else if (fileName.startsWith("scraper_backdrops/")) {
-                    String relativePath = fileName.substring("scraper_backdrops/".length());
-                    outputFile = new File(MediaScraper.getBackdropDirectory(this), relativePath);
-                } else if (fileName.startsWith("scraper_pictures/")) {
-                    String relativePath = fileName.substring("scraper_pictures/".length());
-                    outputFile = new File(MediaScraper.getPictureDirectory(this), relativePath);
-                }
-
-                if (outputFile != null && !entry.isDirectory()) {
-                    // Create parent directories if needed
-                    File parentDir = outputFile.getParentFile();
-                    if (parentDir != null && !parentDir.exists()) {
-                        parentDir.mkdirs();
+                    if (fileName.equals(DATABASE_NAME) || fileName.endsWith("/" + DATABASE_NAME)) {
+                        outputFile = getDatabasePath(DATABASE_NAME);
+                    } else if (fileName.equals(CREDENTIALS_DB_NAME) || fileName.endsWith("/" + CREDENTIALS_DB_NAME)) {
+                        outputFile = getDatabasePath(CREDENTIALS_DB_NAME);
+                    } else if (fileName.equals(SHORTCUTS_DB_NAME) || fileName.endsWith("/" + SHORTCUTS_DB_NAME)) {
+                        outputFile = getDatabasePath(SHORTCUTS_DB_NAME);
+                    } else if (fileName.equals(SHORTCUTS2_DB_NAME) || fileName.endsWith("/" + SHORTCUTS2_DB_NAME)) {
+                        outputFile = getDatabasePath(SHORTCUTS2_DB_NAME);
+                    } else if (fileName.contains("scraper_posters/")) {
+                        String relativePath = fileName.substring(fileName.indexOf("scraper_posters/") + "scraper_posters/".length());
+                        if (!relativePath.isEmpty()) {
+                            outputFile = new File(MediaScraper.getPosterDirectory(this), relativePath);
+                        }
+                    } else if (fileName.contains("scraper_backdrops/")) {
+                        String relativePath = fileName.substring(fileName.indexOf("scraper_backdrops/") + "scraper_backdrops/".length());
+                        if (!relativePath.isEmpty()) {
+                            outputFile = new File(MediaScraper.getBackdropDirectory(this), relativePath);
+                        }
+                    } else if (fileName.contains("scraper_pictures/")) {
+                        String relativePath = fileName.substring(fileName.indexOf("scraper_pictures/") + "scraper_pictures/".length());
+                        if (!relativePath.isEmpty()) {
+                            outputFile = new File(MediaScraper.getPictureDirectory(this), relativePath);
+                        }
+                    } else if (fileName.endsWith("_preferences.xml") || fileName.equals("shared_prefs_backup.xml") || fileName.contains("shared_prefs")) {
+                        File prefsDir = new File(getApplicationInfo().dataDir, "shared_prefs");
+                        if (!prefsDir.exists()) prefsDir.mkdirs();
+                        outputFile = new File(prefsDir, getPackageName() + "_preferences.xml");
                     }
 
-                    // Extract file
-                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                        int len;
-                        while ((len = zis.read(buffer)) > 0) {
-                            fos.write(buffer, 0, len);
+                    if (outputFile != null && !entry.isDirectory()) {
+                        File parentDir = outputFile.getParentFile();
+                        if (parentDir != null && !parentDir.exists()) {
+                            parentDir.mkdirs();
+                        }
+
+                        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                            int len;
+                            while ((len = zis.read(buffer)) > 0) {
+                                fos.write(buffer, 0, len);
+                            }
                         }
                     }
+                } catch (Exception entryError) {
+                    log.warn("importMediaLibrary: failed to extract entry {}, continuing anyway", fileName, entryError);
                 }
 
                 zis.closeEntry();
             }
         }
 
+        // STEP 4: Fix hardcoded package paths in database tables and preferences
+        if (log.isDebugEnabled()) log.debug("importMediaLibrary: updating package paths in database tables and preferences");
+        fixDatabasePackagePaths(getDatabasePath(DATABASE_NAME));
+        fixDatabasePackagePaths(getDatabasePath(CREDENTIALS_DB_NAME));
+        fixDatabasePackagePaths(getDatabasePath(SHORTCUTS_DB_NAME));
+        fixDatabasePackagePaths(getDatabasePath(SHORTCUTS2_DB_NAME));
+        fixPreferencesPackagePaths();
+
         if (log.isDebugEnabled()) log.debug("importMediaLibrary: FULL REPLACEMENT import completed successfully");
+    }
+
+    private void fixDatabasePackagePaths(File dbFile) {
+        if (dbFile == null || !dbFile.exists()) return;
+        String currentPackage = getPackageName();
+        if (log.isDebugEnabled()) log.debug("fixDatabasePackagePaths: updating paths in {} for package {}", dbFile.getName(), currentPackage);
+
+        SQLiteDatabase db = null;
+        try {
+            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+            Cursor tablesCursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'", null);
+            if (tablesCursor != null) {
+                while (tablesCursor.moveToNext()) {
+                    String tableName = tablesCursor.getString(0);
+                    Cursor colsCursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null);
+                    if (colsCursor != null) {
+                        while (colsCursor.moveToNext()) {
+                            String colName = colsCursor.getString(1);
+                            String colType = colsCursor.getString(2);
+                            if (colType != null && (colType.toUpperCase().contains("TEXT") || colType.toUpperCase().contains("CHAR") || colType.isEmpty())) {
+                                try {
+                                    String updateSql = "UPDATE " + tableName + " SET " + colName +
+                                            " = REPLACE(" + colName + ", '/org.courville.nova/', '/" + currentPackage + "/')" +
+                                            " WHERE " + colName + " LIKE '%/org.courville.nova/%'";
+                                    db.execSQL(updateSql);
+                                } catch (Exception e) {
+                                    // Ignore errors on specific column updates
+                                }
+                            }
+                        }
+                        colsCursor.close();
+                    }
+                }
+                tablesCursor.close();
+            }
+        } catch (Exception e) {
+            log.error("fixDatabasePackagePaths: error updating package paths in {}", dbFile.getName(), e);
+        } finally {
+            if (db != null && db.isOpen()) {
+                db.close();
+            }
+        }
+    }
+
+    private void fixPreferencesPackagePaths() {
+        try {
+            File prefsFile = new File(getApplicationInfo().dataDir, "shared_prefs/" + getPackageName() + "_preferences.xml");
+            if (prefsFile.exists()) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(prefsFile)));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line.replace("org.courville.nova", getPackageName())).append("\n");
+                }
+                reader.close();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(prefsFile)));
+                writer.write(sb.toString());
+                writer.flush();
+                writer.close();
+            }
+        } catch (Exception e) {
+            log.warn("fixPreferencesPackagePaths: failed to update preferences file", e);
+        }
     }
 
     private void flushDatabaseWAL() {
@@ -383,7 +476,6 @@ public class MediaLibraryBackupService extends Service {
                 if (log.isDebugEnabled()) log.debug("flushDatabaseWAL: opening database for WAL checkpoint");
                 SQLiteDatabase db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null,
                         SQLiteDatabase.OPEN_READWRITE);
-                // Checkpoint WAL to main database file
                 if (log.isDebugEnabled()) log.debug("flushDatabaseWAL: executing PRAGMA wal_checkpoint(FULL)");
                 db.rawQuery("PRAGMA wal_checkpoint(FULL)", null).close();
                 db.close();
@@ -416,91 +508,52 @@ public class MediaLibraryBackupService extends Service {
         File dbWalFile = new File(dbFile.getAbsolutePath() + "-wal");
         File dbShmFile = new File(dbFile.getAbsolutePath() + "-shm");
 
-        if (dbFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", dbFile.getAbsolutePath());
-            dbFile.delete();
-        }
-        if (dbWalFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", dbWalFile.getAbsolutePath());
-            dbWalFile.delete();
-        }
-        if (dbShmFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", dbShmFile.getAbsolutePath());
-            dbShmFile.delete();
-        }
+        if (dbFile.exists()) dbFile.delete();
+        if (dbWalFile.exists()) dbWalFile.delete();
+        if (dbShmFile.exists()) dbShmFile.delete();
 
         // Delete credentials database files
         File credentialsDbFile = getDatabasePath(CREDENTIALS_DB_NAME);
         File credentialsDbWalFile = new File(credentialsDbFile.getAbsolutePath() + "-wal");
         File credentialsDbShmFile = new File(credentialsDbFile.getAbsolutePath() + "-shm");
 
-        if (credentialsDbFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", credentialsDbFile.getAbsolutePath());
-            credentialsDbFile.delete();
-        }
-        if (credentialsDbWalFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", credentialsDbWalFile.getAbsolutePath());
-            credentialsDbWalFile.delete();
-        }
-        if (credentialsDbShmFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", credentialsDbShmFile.getAbsolutePath());
-            credentialsDbShmFile.delete();
-        }
+        if (credentialsDbFile.exists()) credentialsDbFile.delete();
+        if (credentialsDbWalFile.exists()) credentialsDbWalFile.delete();
+        if (credentialsDbShmFile.exists()) credentialsDbShmFile.delete();
 
         // Delete shortcuts database files
         File shortcutsDbFile = getDatabasePath(SHORTCUTS_DB_NAME);
         File shortcutsDbWalFile = new File(shortcutsDbFile.getAbsolutePath() + "-wal");
         File shortcutsDbShmFile = new File(shortcutsDbFile.getAbsolutePath() + "-shm");
 
-        if (shortcutsDbFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcutsDbFile.getAbsolutePath());
-            shortcutsDbFile.delete();
-        }
-        if (shortcutsDbWalFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcutsDbWalFile.getAbsolutePath());
-            shortcutsDbWalFile.delete();
-        }
-        if (shortcutsDbShmFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcutsDbShmFile.getAbsolutePath());
-            shortcutsDbShmFile.delete();
-        }
+        if (shortcutsDbFile.exists()) shortcutsDbFile.delete();
+        if (shortcutsDbWalFile.exists()) shortcutsDbWalFile.delete();
+        if (shortcutsDbShmFile.exists()) shortcutsDbShmFile.delete();
 
         // Delete shortcuts2 database files
         File shortcuts2DbFile = getDatabasePath(SHORTCUTS2_DB_NAME);
         File shortcuts2DbWalFile = new File(shortcuts2DbFile.getAbsolutePath() + "-wal");
         File shortcuts2DbShmFile = new File(shortcuts2DbFile.getAbsolutePath() + "-shm");
 
-        if (shortcuts2DbFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcuts2DbFile.getAbsolutePath());
-            shortcuts2DbFile.delete();
-        }
-        if (shortcuts2DbWalFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcuts2DbWalFile.getAbsolutePath());
-            shortcuts2DbWalFile.delete();
-        }
-        if (shortcuts2DbShmFile.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting {}", shortcuts2DbShmFile.getAbsolutePath());
-            shortcuts2DbShmFile.delete();
-        }
+        if (shortcuts2DbFile.exists()) shortcuts2DbFile.delete();
+        if (shortcuts2DbWalFile.exists()) shortcuts2DbWalFile.delete();
+        if (shortcuts2DbShmFile.exists()) shortcuts2DbShmFile.delete();
 
         // Delete all poster files
         File posterDir = MediaScraper.getPosterDirectory(this);
         if (posterDir.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting all files in {}", posterDir.getAbsolutePath());
             deleteDirectoryContents(posterDir);
         }
 
         // Delete all backdrop files
         File backdropDir = MediaScraper.getBackdropDirectory(this);
         if (backdropDir.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting all files in {}", backdropDir.getAbsolutePath());
             deleteDirectoryContents(backdropDir);
         }
 
         // Delete all picture files
         File pictureDir = MediaScraper.getPictureDirectory(this);
         if (pictureDir.exists()) {
-            if (log.isDebugEnabled()) log.debug("cleanupExistingData: deleting all files in {}", pictureDir.getAbsolutePath());
             deleteDirectoryContents(pictureDir);
         }
 
@@ -509,9 +562,7 @@ public class MediaLibraryBackupService extends Service {
 
     private void deleteDirectoryContents(File dir) {
         File[] files = dir.listFiles();
-        if (files == null) {
-            return;
-        }
+        if (files == null) return;
 
         for (File file : files) {
             if (file.isDirectory()) {
@@ -544,9 +595,7 @@ public class MediaLibraryBackupService extends Service {
         if (log.isDebugEnabled()) log.debug("addDirectoryToZip: {}", zipDirName);
 
         File[] files = dir.listFiles();
-        if (files == null) {
-            return;
-        }
+        if (files == null) return;
 
         for (File file : files) {
             String zipEntryName = zipDirName + "/" + file.getName();
@@ -569,12 +618,10 @@ public class MediaLibraryBackupService extends Service {
         if (log.isDebugEnabled()) log.debug("restartApplication: restarting app after import");
 
         try {
-            // Get the main activity intent
             Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-                // Schedule app restart after a short delay
                 int pendingIntentFlags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                         ? android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE
                         : android.app.PendingIntent.FLAG_UPDATE_CURRENT;
@@ -590,14 +637,13 @@ public class MediaLibraryBackupService extends Service {
                 if (alarmManager != null) {
                     alarmManager.set(
                             android.app.AlarmManager.RTC,
-                            System.currentTimeMillis() + 500, // 500ms delay
+                            System.currentTimeMillis() + 500,
                             pendingIntent
                     );
                 }
 
                 if (log.isDebugEnabled()) log.debug("restartApplication: app restart scheduled, exiting process");
 
-                // Exit the current process
                 System.exit(0);
             }
         } catch (Exception e) {
@@ -611,3 +657,4 @@ public class MediaLibraryBackupService extends Service {
         super.onDestroy();
     }
 }
+// END PULCIX CUSTOM THEME
