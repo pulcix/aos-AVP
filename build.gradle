@@ -265,6 +265,9 @@ android {
     }
     buildTypes {
         println("buildTypes archivesBaseName : " + archivesNameValue)
+        debug {
+            applicationIdSuffix ".infuse"
+        }
         release {
             minifyEnabled = true
             shrinkResources = true
