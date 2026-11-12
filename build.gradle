@@ -166,7 +166,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId = "org.courville.nova"
+        applicationId = "org.courville.nova.infuse"
         generatedDensities = []
         minSdkVersion 23
         targetSdkVersion 35
@@ -266,10 +266,8 @@ android {
     buildTypes {
         println("buildTypes archivesBaseName : " + archivesNameValue)
         debug {
-            applicationIdSuffix ".infuse"
         }
         release {
-            applicationIdSuffix ".infuse"
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt'
