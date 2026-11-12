@@ -269,6 +269,7 @@ android {
             applicationIdSuffix ".infuse"
         }
         release {
+            applicationIdSuffix ".infuse"
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt'
