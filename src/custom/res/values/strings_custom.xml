@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Custom theme strings -->
+    <string name="theme_infuse">Infuse Dark</string>
+
+    <string-array name="theme_selection_entries" translatable="false">
+        <item>@string/theme_blue</item>
+        <item>@string/theme_black</item>
+        <item>@string/theme_infuse</item>
+    </string-array>
+
+    <string-array name="theme_selection_entryvalues">
+        <item>blue</item>
+        <item>black</item>
+        <item>infuse</item>
+    </string-array>
+</resources>

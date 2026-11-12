@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 Nova Video Player / Pulcix Custom Integration
+-->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="infuse_accent">#FF7F02</color>
+
+    <!-- Override Nova / Leanback theme colors -->
+    <color name="colorAccent">#FF7F02</color>
+    <color name="theme_background_infuse" tools:override="true">#000000</color>
+
+    <color name="theme_accent_infuse" tools:override="true">#FF7F02</color>
+    <color name="theme_category_selector_infuse" tools:override="true">#FF7F02</color>
+    <color name="theme_list_focused_infuse" tools:override="true">#FF7F02</color>
+    <color name="theme_search_affordance_infuse" tools:override="true">#FF7F02</color>
+    <color name="theme_list_pressed_infuse" tools:override="true">#33FF7F02</color>
+</resources>
