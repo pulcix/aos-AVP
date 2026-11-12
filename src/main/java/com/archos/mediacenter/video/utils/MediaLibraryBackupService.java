@@ -165,7 +165,7 @@ public class MediaLibraryBackupService extends Service {
                 restartApplication();
             } catch (Exception e) {
                 log.error("startImport: error importing media library", e);
-                showToast(getString(R.string.media_library_import_error));
+                showToast(getString(R.string.media_library_import_error) + ": " + e.getMessage());
             } finally {
                 stopForeground(true);
                 stopSelf();
@@ -387,11 +387,10 @@ public class MediaLibraryBackupService extends Service {
                             }
                         }
                     }
+                    zis.closeEntry();
                 } catch (Exception entryError) {
                     log.warn("importMediaLibrary: failed to extract entry {}, continuing anyway", fileName, entryError);
                 }
-
-                zis.closeEntry();
             }
         }
 
