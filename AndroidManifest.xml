@@ -18,8 +18,9 @@
     xmlns:dist="http://schemas.android.com/apk/distribution"
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
-    android:sharedUserId="archos.openmediacenter"
-    android:sharedUserMaxSdkVersion="32">
+    android:sharedUserId="${applicationId}.shared"
+    android:sharedUserMaxSdkVersion="32"
+    tools:replace="android:sharedUserId">
 
     <supports-screens android:largeScreens="true" />
 
