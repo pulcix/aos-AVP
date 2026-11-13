@@ -370,7 +370,7 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.8'
     implementation 'androidx.tvprovider:tvprovider:1.1.0'
     implementation 'androidx.media:media:1.7.1'
-    implementation 'androidx.core:core:1.17.0'
+    implementation 'androidx.core:core:1.16.0'
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
     implementation 'androidx.legacy:legacy-support-core-ui:1.0.0'
     implementation 'androidx.fragment:fragment:1.8.9'
@@ -402,4 +402,15 @@ configurations { // try to exclude device specific libraries interfering
 // to avoid duplicate classes
 configurations.implementation {
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.16.0'
+            force 'androidx.core:core-ktx:1.16.0'
+            force 'com.squareup.okhttp3:okhttp:4.12.0'
+            force 'com.squareup.okhttp3:okhttp-android:4.12.0'
+        }
+    }
 }
